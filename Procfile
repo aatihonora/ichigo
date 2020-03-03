@@ -1,2 +1,2 @@
-worker: python discordbot.py
+worker: python Ichigo.py
 

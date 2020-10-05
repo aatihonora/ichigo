@@ -7,10 +7,9 @@ import asyncio
 import json
 import random
 
-bot.start("NjUyMDY3MjUzMDgwMDMxMjMz.XnDPvA.3-6i5zNh2bfl2MCxyf1JHJsRTAs")
-
 bot = commands.Bot(command_prefix=".")
 
+bot.start("NjUyMDY3MjUzMDgwMDMxMjMz.XnDPvA.3-6i5zNh2bfl2MCxyf1JHJsRTAs")
 
 bot.remove_command('help')
 

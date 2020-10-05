@@ -7,7 +7,7 @@ import asyncio
 import json
 import random
 
-bot = discord.Client(command_prefix=".")
+bot = commands.Bot(command_prefix=".")
 
 token = open("token.txt","r").read()
 

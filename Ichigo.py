@@ -52,7 +52,7 @@ async def update_data(users, user):
 
 
 async def add_experience(users, user, exp):
-    if time.time() - users[f'{user.id}']['last_message'] > 1: 
+    if time.time() - users[f'{user.id}']['last_message'] > 20: 
         users[f'{user.id}']['experience'] += exp
         users[f'{user.id}']['last_message'] = time.time()
     else:

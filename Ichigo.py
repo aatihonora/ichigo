@@ -9,7 +9,7 @@ import random
 
 bot = discord.Client(command_prefix=".")
 
-token = open("token","r").read()
+token = open("token.txt","r").read()
 
 bot.remove_command('help')
 

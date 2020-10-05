@@ -152,7 +152,7 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
     staff = discord.utils.get(member.guild.roles, name="Staff")
     if staff in member.roles:
         await ctx.channel.purge(limit=1)
-        await ctx.send("You can't kick the staff member")
+        await ctx.send("You can't warn the staff member")
     else:
         global warn
         warn = "({1}) warned ({0}) reason ({2})".format(member, ctx.message.author, reason)
@@ -160,7 +160,7 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
         embed = discord.Embed(title="Warn", description=f" You got a warning for **{reason}**\n \nServer: {guild.name}", colour=13882323)
         await member.send(content=None, embed=embed)
         await ctx.channel.purge(limit=1)   
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Warn: {warn}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Warn: {warn}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Warn: {warn}\n")
@@ -193,7 +193,7 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
         await ctx.channel.purge(limit=1)
         global kick
         kick = "({1}) kicked ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Kick: {kick}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Kick: {kick}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Kick: {kick}\n")
@@ -219,7 +219,7 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
         await ctx.channel.purge(limit=1)
         global ban
         ban = "({1}) banned ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Ban: {ban}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Ban: {ban}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Ban: {ban}\n")
@@ -242,7 +242,7 @@ async def serverban(ctx, id: int, *, reason=None):
         global ban
         reason=reason
         sban = "({1}) server banned ({0}) reason ({2})".format(id, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Serverban: {sban}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Serverban: {sban}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, SBan: {sban}\n")
@@ -263,7 +263,7 @@ async def unban(ctx, id: int, *, reason=None):
         await ctx.send(f'Successfully Unbanned {user.name}#{user.discriminator}')
         global unban
         unban = "({1}) unbanned ({0}) reason ({2})".format(id, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Unban: {unban}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Unban: {unban}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Unban: {unban}\n")
@@ -297,7 +297,7 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
         await member.send(content=None, embed=embed)
         global mute
         mute = "({1}) muted ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Mute: {mute}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Mute: {mute}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Mute: {mute}\n")
@@ -324,7 +324,7 @@ async def unmute(ctx, member: discord.Member = None, *, reason=None):
         await member.send(content=None, embed=embed)
         global unmute
         unmute = "({1}) unmuted ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Unmute: {unmute}\n"))
+        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Unmute: {unmute}\n")
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Unmute: {unmute}\n")

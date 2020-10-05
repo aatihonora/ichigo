@@ -1,4 +1,3 @@
-
 from discord.ext.commands import Bot
 from discord.ext import commands
 import time
@@ -7,6 +6,8 @@ import discord
 import asyncio
 import json
 import random
+
+bot.start("NjUyMDY3MjUzMDgwMDMxMjMz.XnDPvA.3-6i5zNh2bfl2MCxyf1JHJsRTAs")
 
 bot = commands.Bot(command_prefix=".")
 
@@ -418,5 +419,3 @@ async def level(ctx, member: discord.Member = None):
             lvl = users[str(id)]['level']
             await ctx.send(f'{member} is at level {lvl}!')
         
-
-bot.run("NjUyMDY3MjUzMDgwMDMxMjMz.XnDPvA.3-6i5zNh2bfl2MCxyf1JHJsRTAs")

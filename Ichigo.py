@@ -6,6 +6,7 @@ import discord
 import asyncio
 import json
 import random
+import datetime
 
 bot = commands.Bot(command_prefix=".")
 
@@ -20,8 +21,18 @@ unmute = ""
 ban = ""
 unban = ""
 
+
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
+    with open('bad-words.txt', 'r') as file:
+        bad_words = file.read().split(', ')
+    if any(bad_word in message.content for bad_word in bad_words):
+        await message.channel.purge(limit=1)
+        return
+    elif any(bad_word in message.content.strip().lower() for bad_word in bad_words):
+        await message.channel.purge(limit=1)
+        return
+
     if message.content.startswith('.'):
         await bot.process_commands(message)
         return
@@ -119,16 +130,17 @@ async def ping(ctx):
 
 @bot.command(aliases=["sinfo"])
 async def serverinfo(ctx):
-    server = bot.get_guild(661211931558019072)
+    guild = bot.get_guild(661211931558019072)
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         embed = discord.Embed(title="Server Information", colour=12632256)
-        embed.add_field(name="Server Name:", value="Hell", inline=False)
-        embed.add_field(name="Server Owner", value="Azog The Smoker#7877", inline=False)
-        embed.add_field(name="Server Created:", value="Mon Dec 30 2019", inline=False)
-        embed.add_field(name="Member Count:", value=f"""{server.member_count}""")
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.add_field(name="**Server Name:**", value=f"{guild.name}", inline=False)
+        embed.add_field(name="**Server Owner**", value=f"{guild.owner}", inline=False)
+        embed.add_field(name="**Server Created:**", value=f"{guild.created_at.__format__('%d-%m-%Y %H:%M:%S')}", inline=False)
+        embed.add_field(name="**Member Count:**", value=f"{guild.member_count}")
     await ctx.send(embed=embed)
-
+    
 
 @bot.command(aliases=["purge"])
 @commands.has_role("Inn Keepers")
@@ -341,22 +353,25 @@ async def on_member_join(member):
     
     with open('users.json', 'w') as f:
         json.dump(users, f)
+    return
     role = discord.utils.get(member.guild.roles, name="Wanderer")
     await member.add_roles(role)
     e = discord.Embed()
     e.set_image(url="https://cdn.discordapp.com/attachments/686941615490596922/686941777248124940/Underworld.jpg")
     for channel in member.guild.channels:
-        if str(channel) == "general":
+        if str(channel) == "⚔┃wanderers-guild":
             await channel.send(f"""Welcome to the {guild.name} {member.mention} """, embed=e)
 
 @bot.command()
 async def help(ctx):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
-        embed = discord.Embed(title="Bot Commands", description="Here are all the bot commands \n \n \n __**ping**__ = "
-                                                                "\"Replies with latency\" \n __**avatar/av**__ = \""
-                                                                "Shows user\'s avatar\" \n __**userinfo**__ = \"Shows "
-                                                                "user\'s info\" \n __**serverinfo**__ = \"Shows server info\" \n", colour=16711935)
+        embed = discord.Embed(title="Bot Commands", description="Here are all the bot commands \n \n__**ping**__ = "
+                                                                "\"Replies with latency\" \n__**avatar/av**__ = \""
+                                                                "Shows user\'s avatar\" \n__**userinfo**__ = \"Shows "
+                                                                "user\'s info\" \n__**serverinfo**__ = \"Shows server info\" \n"
+                                                                "__**profile**__ = \"Shows user\'s profile and customizable info\"\n"
+                                                                "__**edit**__ = \"For changing customizable info\"", colour=0x101010)
         await ctx.send(content=None, embed=embed)
 
 
@@ -409,20 +424,83 @@ async def staff(ctx):
 
 
 @bot.command()
-async def level(ctx, member: discord.Member = None):
+async def profile(ctx, member: discord.Member = None):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         if not member:
             id = ctx.message.author.id
             with open('users.json', 'r') as f:
                 users = json.load(f)
-            lvl = users[str(id)]['level']
-            await ctx.send(f'You are at level {lvl}!')
+            level = users[str(id)]['level']
+            guild = ctx.guild
+            member = ctx.message.author
+            user = member
+            mem_join = member.joined_at
+            now = datetime.datetime.now()
+            join_days = (now - mem_join).days
+            with open('data.json', 'r') as d:
+                data = json.load(d)
+            if not f'{member.id}' in data:
+                info = None
+            else: 
+                info = data[str(id)]['info']
+            embed = discord.Embed()
+            if user.is_avatar_animated():
+                embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
+                embed.set_footer(text=f"ID: {user.id}")
+                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
+            else:
+                embed.set_image(url=f"{user.avatar_url_as(size=256, format='png')}")
+                embed.set_footer(text=f"ID: {user.id}")
+                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
+            return await ctx.send(embed=embed)
         else:
             id = member.id
             with open('users.json', 'r') as f:
                 users = json.load(f)
-            lvl = users[str(id)]['level']
-            await ctx.send(f'{member} is at level {lvl}!')
+            level = users[str(id)]['level']
+            guild = ctx.guild
+            user = member
+            mem_join = member.joined_at
+            now = datetime.datetime.now()
+            join_days = (now - mem_join).days
+            info = None
+            embed = discord.Embed()
+            if user.is_avatar_animated():
+                embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
+                embed.set_footer(text=f"ID: {user.id}")
+                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
+            else:
+                embed.set_image(url=f"{user.avatar_url_as(size=256, format='png')}")
+                embed.set_footer(text=f"ID: {user.id}")
+                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
+            return await ctx.send(embed=embed)
+
+@bot.command()
+async def edit(ctx, *, info):
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        member = discord.Member
+        member = ctx.message.author
+        info = str(f'{info}')
+        with open('data.json', 'r') as d:
+            data = json.load(d)
+
+        await userdata(data, ctx.message.author, info)
+        await edit(data, ctx.message.author, info)
+    
+        with open('data.json', 'w') as d:
+            json.dump(data, d)
+async def userdata(data, user, info):            
+    if not f'{user.id}' in data:
+        data[f'{user.id}'] = {}
+        data[f'{user.id}']['info'] = info
+        
+async def edit(data, user, info):
+    if f'{user.id}' in data:
+        data[f'{user.id}']['info'] = info
+    else:
+        return
+
         
 bot.run(token)

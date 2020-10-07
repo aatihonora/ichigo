@@ -24,6 +24,7 @@ unban = ""
 
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
+    c = ["🤖┃machinery"]
     with open('bad-words.txt', 'r') as file:
         bad_words = file.read().split(', ')
     if any(bad_word in message.content for bad_word in bad_words):
@@ -32,8 +33,7 @@ async def on_message(message, *, member: discord.Member = None):
     elif any(bad_word in message.content.strip().lower() for bad_word in bad_words):
         await message.channel.purge(limit=1)
         return
-
-    if message.content.startswith('.'):
+    if str(message.channel) in c:
         await bot.process_commands(message)
         return
     if isinstance(message.channel, discord.abc.PrivateChannel):
@@ -59,7 +59,7 @@ async def update_data(users, user):
         users[f'{user.id}']['experience'] = 0
         users[f'{user.id}']['level'] = 1
         users[f'{user.id}']['last_message'] = 0
-        
+        users[f'{user.id}']['info'] = None
 
 
 async def add_experience(users, user, exp):
@@ -121,7 +121,7 @@ async def level_up(users, user, message):
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
-
+    
 
 @bot.command()
 async def ping(ctx):
@@ -155,13 +155,17 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
     if member is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Member Not Found")
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't warn the mighty one")
+        return
     elif reason is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Reason Required")
         return
     else:
         member == member
-    staff = discord.utils.get(member.guild.roles, name="Staff")
+    staff = discord.utils.get(member.guild.roles, name="Waiters")
     if staff in member.roles:
         await ctx.channel.purge(limit=1)
         await ctx.send("You can't warn the staff member")
@@ -188,13 +192,17 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     if member is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Member Not Found")
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't kick the mighty one")
+        return
     elif reason is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Reason Required")
         return
     else:
         member == member
-    staff = discord.utils.get(member.guild.roles, name="Staff")
+    staff = discord.utils.get(member.guild.roles, name="Waiters")
     if staff in member.roles:
         await ctx.channel.purge(limit=1)
         await ctx.send("You can't kick the staff member")
@@ -220,6 +228,10 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
     if member is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Member Not Found")
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't ban the mighty one")
+        return
     elif reason is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Reason Required")
@@ -246,6 +258,10 @@ async def serverban(ctx, id: int, *, reason=None):
         await ctx.channel.purge(limit=1)
         await ctx.send("Reason Required")
         return
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't ban the mighty one")
+        return
     else:
         user = await bot.fetch_user(id)
         await ctx.channel.purge(limit=1)
@@ -267,6 +283,10 @@ async def unban(ctx, id: int, *, reason=None):
     if reason is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Reason Required")
+        return
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't ban or unban the mighty one")
         return
     else:
         user = await bot.fetch_user(id)
@@ -291,9 +311,13 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
         await ctx.channel.purge(limit=1)
         await ctx.send("Member Not Found")
         return
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you can't mute the mighty one")
+        return
     else:
         member == member
-    staff = discord.utils.get(member.guild.roles, name="Staff")    
+    staff = discord.utils.get(member.guild.roles, name="Waiters")    
     role = discord.utils.get(member.guild.roles, name="Muted")
     if role in member.roles:
         await ctx.channel.purge(limit=1)
@@ -325,6 +349,10 @@ async def unmute(ctx, member: discord.Member = None, *, reason=None):
     if member is None:
         await ctx.channel.purge(limit=1)
         await ctx.send("Member Not Found")
+    elif member.bot:
+        await ctx.channel.purge(limit=1)
+        await ctx.send("Fool you cant warn the mighty one")
+        return
     elif role not in member.roles:
         await ctx.channel.purge(limit=1)
         await ctx.send("User is not muted")
@@ -427,80 +455,100 @@ async def staff(ctx):
 async def profile(ctx, member: discord.Member = None):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
-        if not member:
-            id = ctx.message.author.id
-            with open('users.json', 'r') as f:
-                users = json.load(f)
-            level = users[str(id)]['level']
-            guild = ctx.guild
-            member = ctx.message.author
-            user = member
-            mem_join = member.joined_at
-            now = datetime.datetime.now()
-            join_days = (now - mem_join).days
-            with open('data.json', 'r') as d:
-                data = json.load(d)
-            if not f'{member.id}' in data:
-                info = None
-            else: 
-                info = data[str(id)]['info']
-            embed = discord.Embed()
-            if user.is_avatar_animated():
-                embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
-                embed.set_footer(text=f"ID: {user.id}")
-                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
-            else:
-                embed.set_image(url=f"{user.avatar_url_as(size=256, format='png')}")
-                embed.set_footer(text=f"ID: {user.id}")
-                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
-            return await ctx.send(embed=embed)
-        else:
+        if member is not None:
             id = member.id
-            with open('users.json', 'r') as f:
-                users = json.load(f)
-            level = users[str(id)]['level']
-            guild = ctx.guild
-            user = member
-            mem_join = member.joined_at
-            now = datetime.datetime.now()
-            join_days = (now - mem_join).days
+        else:
+            id = ctx.message.author.id
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        level = users[str(id)]['level']
+        guild = ctx.guild
+        member = guild.get_member(id)
+        user = member
+        mem_join = member.joined_at
+        now = datetime.datetime.now()
+        join_days = (now - mem_join).days
+        with open('users.json', 'r') as d:
+            users = json.load(d)
+        if not f'{member.id}' in users:
             info = None
-            embed = discord.Embed()
-            if user.is_avatar_animated():
-                embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
-                embed.set_footer(text=f"ID: {user.id}")
-                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
-            else:
-                embed.set_image(url=f"{user.avatar_url_as(size=256, format='png')}")
-                embed.set_footer(text=f"ID: {user.id}")
-                embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n**Nickname:** {user.nick}\n**Member Since:** {join_days}\n**Level:** {level}\n\n\n**Info:** {info}")
-            return await ctx.send(embed=embed)
+        else: 
+            info = users[str(id)]['info']
+        embed = discord.Embed()
+        if user.is_avatar_animated():
+            embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
+            embed.set_footer(text=f"ID: {user.id}")
+            embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                            f"**Nickname:** {user.nick}\n"
+                                                            f"**Member Since:** {join_days}\n"
+                                                            f"**Level:** {level}\n\n\n"
+                                                            f"**Info:** {info}")
+        else:
+            embed.set_image(url=f"{user.avatar_url_as(size=256, format='png')}")
+            embed.set_footer(text=f"ID: {user.id}")
+            embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                            f"**Nickname:** {user.nick}\n"
+                                                            f"**Member Since:** {join_days}\n"
+                                                            f"**Level:** {level}\n\n\n"
+                                                            f"**Info:** {info}")
+        return await ctx.send(embed=embed)
 
 @bot.command()
 async def edit(ctx, *, info):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
-        member = discord.Member
-        member = ctx.message.author
+        user = discord.Member
+        user = ctx.message.author
+        member = user
         info = str(f'{info}')
-        with open('data.json', 'r') as d:
-            data = json.load(d)
+        with open('users.json', 'r') as d:
+            users = json.load(d)
 
-        await userdata(data, ctx.message.author, info)
-        await edit(data, ctx.message.author, info)
+        await userdata(users, ctx.message.author, info, ctx)
+        await edit(users, ctx.message.author, info, ctx)
     
-        with open('data.json', 'w') as d:
-            json.dump(data, d)
-async def userdata(data, user, info):            
-    if not f'{user.id}' in data:
-        data[f'{user.id}'] = {}
-        data[f'{user.id}']['info'] = info
+        with open('users.json', 'w') as d:
+            json.dump(users, d)
+async def userdata(users, user, info, ctx):            
+    if not f'{user.id}' in users:
+        users[f'{user.id}'] = {}
+        users[f'{user.id}']['info'] = info
+        await ctx.send('Edited')
         
-async def edit(data, user, info):
-    if f'{user.id}' in data:
-        data[f'{user.id}']['info'] = info
+async def edit(users, user, info, ctx):
+    if f'{user.id}' in users:
+        users[f'{user.id}']['info'] = info
+        await ctx.send('Edited')
     else:
         return
 
-        
+@bot.command()
+async def event(message, user: discord.Member = None):
+    channels = ["🗣┃event-wall"]
+    if str(message.channel) in channels:
+        await message.channel.purge(limit=1)
+        embed = discord.Embed(colour=0x4B0082)
+        embed.add_field(name="**Event**", value=f"React to :scroll: to get **Bard** role. "
+                                                f"You will get notified whenever theere is an event\n\n"
+                                                f"So don\'t forget to react")
+        message = await message.channel.send(embed=embed)
+        await message.add_reaction("\U0001F4DC")
+        emote = '\U0001F4DC'
+        while True:
+            def check(reaction, user):
+                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+            reaction, user = await bot.wait_for('reaction_add', check=check)
+            if str(reaction) == '\U0001F4DC':
+                role = discord.utils.get(user.guild.roles, name="Bard")
+                await user.add_roles(role)
+            def check(reaction, user):
+                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+            reaction, user = await bot.wait_for('reaction_remove', check=check)
+            if str(reaction) == '\U0001F4DC':
+                role = discord.utils.get(user.guild.roles, name="Bard")
+                await user.remove_roles(role)
+
+    
+
 bot.run(token)
+ 

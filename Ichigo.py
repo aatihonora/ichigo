@@ -463,47 +463,98 @@ async def profile(ctx, member: discord.Member = None):
     if str(ctx.channel) in channels:
         if member is not None:
             id = member.id
+            if str(id) == "652067253080031233":
+                await ctx.send("I have no profile young one")
+                return
+            else:
+                with open('users.json', 'r') as f:
+                    users = json.load(f)
+                level = users[str(id)]['level']
+                guild = ctx.guild
+                member = guild.get_member(id)
+                user = member
+                mem_join = member.joined_at
+                now = datetime.datetime.now()
+                join_days = (now - mem_join).days
+                with open('users.json', 'r') as d:
+                    users = json.load(d)
+                if not f'{member.id}' in users:
+                    info = None
+                    bg = "https://i.imgur.com/DY2CKvu.png"
+                    av = None
+                else:
+                    info = users[str(id)]['info']
+                    bg = users[str(id)]['bg']
+                    av = users[str(id)]['av']
+                    if user.is_avatar_animated():
+                        embed = discord.Embed()
+                        embed.set_image(url=f"{bg}")
+                        embed.set_footer(text=f"ID: {user.id}")
+                        embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                                        f"**Nickname:** {user.nick}\n"
+                                                                        f"**Member Since:** {join_days}\n"
+                                                                        f"**Level:** {level}\n\n\n"
+                                                                        f"**Info:** {info}\n"
+                                                                        f"**Avatar:** {av}")
+                        await ctx.send(embed=embed)
+                        return
+                    else:
+                        embed = discord.Embed()
+                        embed.set_image(url=f"{bg}")
+                        embed.set_footer(text=f"ID: {user.id}")
+                        embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                                        f"**Nickname:** {user.nick}\n"
+                                                                        f"**Member Since:** {join_days}\n"
+                                                                        f"**Level:** {level}\n\n\n"
+                                                                        f"**Info:** {info}\n"
+                                                                        f"**Avatar:** {av}")
+                        await ctx.send(embed=embed)
+                        return
         else:
             id = ctx.message.author.id
-        with open('users.json', 'r') as f:
-            users = json.load(f)
-        level = users[str(id)]['level']
-        guild = ctx.guild
-        member = guild.get_member(id)
-        user = member
-        mem_join = member.joined_at
-        now = datetime.datetime.now()
-        join_days = (now - mem_join).days
-        with open('users.json', 'r') as d:
-            users = json.load(d)
-        if not f'{member.id}' in users:
-            info = None
-            bg = "https://i.imgur.com/DY2CKvu.png"
-            av = None
-        else:
-            info = users[str(id)]['info']
-            bg = users[str(id)]['bg']
-            av = users[str(id)]['av']
-        embed = discord.Embed()
-        if user.is_avatar_animated():
-            embed.set_image(url=f"{user.avatar_url_as(size=256, format='gif')}")
-            embed.set_footer(text=f"ID: {user.id}")
-            embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
-                                                            f"**Nickname:** {user.nick}\n"
-                                                            f"**Member Since:** {join_days}\n"
-                                                            f"**Level:** {level}\n\n\n"
-                                                            f"**Info:** {info}\n"
-                                                            f"**Avatar:** {av}")
-        else:
-            embed.set_image(url=f"{bg}")
-            embed.set_footer(text=f"ID: {user.id}")
-            embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
-                                                            f"**Nickname:** {user.nick}\n"
-                                                            f"**Member Since:** {join_days}\n"
-                                                            f"**Level:** {level}\n\n\n"
-                                                            f"**Info:** {info}\n"
-                                                            f"**Avatar:** {av}")
-        return await ctx.send(embed=embed)
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            level = users[str(id)]['level']
+            guild = ctx.guild
+            member = guild.get_member(id)
+            user = member
+            mem_join = member.joined_at
+            now = datetime.datetime.now()
+            join_days = (now - mem_join).days
+            with open('users.json', 'r') as d:
+                users = json.load(d)
+            if not f'{member.id}' in users:
+                info = None
+                bg = "https://i.imgur.com/DY2CKvu.png"
+                av = None
+            else:
+                info = users[str(id)]['info']
+                bg = users[str(id)]['bg']
+                av = users[str(id)]['av']
+                if user.is_avatar_animated():
+                    embed = discord.Embed()
+                    embed.set_image(url=f"{bg}")
+                    embed.set_footer(text=f"ID: {user.id}")
+                    embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                                    f"**Nickname:** {user.nick}\n"
+                                                                    f"**Member Since:** {join_days}\n"
+                                                                    f"**Level:** {level}\n\n\n"
+                                                                    f"**Info:** {info}\n"
+                                                                    f"**Avatar:** {av}")
+                    await ctx.send(embed=embed)
+                    return
+                else:
+                    embed = discord.Embed()
+                    embed.set_image(url=f"{bg}")
+                    embed.set_footer(text=f"ID: {user.id}")
+                    embed.add_field(name="__**Profile:**__", value=f"**Discord Name:** {user}\n"
+                                                                    f"**Nickname:** {user.nick}\n"
+                                                                    f"**Member Since:** {join_days}\n"
+                                                                    f"**Level:** {level}\n\n\n"
+                                                                    f"**Info:** {info}\n"
+                                                                    f"**Avatar:** {av}")
+                await ctx.send(embed=embed)
+                return
 
 @bot.command()
 async def edit(ctx, *, info):
@@ -608,6 +659,84 @@ async def avatars(message, user: discord.Member = None):
                             reaction, user = await bot.wait_for('reaction_add', check=check)
                             if str(reaction) == u"\u274C":
                                 await message.delete()
+                                embed = discord.Embed(title="**Kagehisa Anotsu**", colour=0x4B0082)
+                                embed.set_image(url="https://i.imgur.com/vRuiLMg.png")
+                                message = await message.channel.send(embed=embed)
+                                await message.add_reaction(u"\u2705")
+                                await message.add_reaction(u"\u274C")
+                                emote = [u"\u274C", u"\u2705"]
+                                while True:
+                                    def check(reaction, user):
+                                        return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+                                    reaction, user = await bot.wait_for('reaction_add', check=check)
+                                    if str(reaction) == u"\u274C":
+                                        await message.delete()
+                                        embed = discord.Embed(title="**Roy Mustang**", colour=0x4B0082)
+                                        embed.set_image(url="https://i.imgur.com/ipNdi7X.png")
+                                        message = await message.channel.send(embed=embed)
+                                        await message.add_reaction(u"\u2705")
+                                        await message.add_reaction(u"\u274C")
+                                        emote = [u"\u274C", u"\u2705"]
+                                        while True:
+                                            def check(reaction, user):
+                                                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+                                            reaction, user = await bot.wait_for('reaction_add', check=check)
+                                            if str(reaction) == u"\u274C":
+                                                await message.delete()
+                                                embed = discord.Embed(title="**Minato Namikaze**", colour=0x4B0082)
+                                                embed.set_image(url="https://i.imgur.com/CqiDOJj.png")
+                                                message = await message.channel.send(embed=embed)
+                                                await message.add_reaction(u"\u2705")
+                                                await message.add_reaction(u"\u274C")
+                                                emote = [u"\u274C", u"\u2705"]
+                                                while True:
+                                                    def check(reaction, user):
+                                                        return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+                                                    reaction, user = await bot.wait_for('reaction_add', check=check)
+                                                    if str(reaction) == u"\u274C":
+                                                        await message.delete()
+                                                        guild = bot.get_guild(661211931558019072)
+                                                        channel = guild.get_channel(686918214327861266)
+                                                        await channel.send("It seems like we ran out of avatars")
+                                                    elif str(reaction) == u"\u2705":
+                                                        await message.delete()
+                                                        bg = "https://i.imgur.com/CqiDOJj.png"
+                                                        av = "Minato Namikaze"
+                                                        with open('users.json', 'r') as p:
+                                                            users = json.load(p)
+                                                
+                                                        await back(users, user, bg, av)
+                                                
+                                                        with open('users.json', 'w') as p:
+                                                            json.dump(users, p)
+                                                
+                                                        await message.channel.send('Added')
+                                            elif str(reaction) == u"\u2705":
+                                                await message.delete()
+                                                bg = "https://i.imgur.com/ipNdi7X.png"
+                                                av = "Roy Mustang"
+                                                with open('users.json', 'r') as p:
+                                                    users = json.load(p)
+                                        
+                                                await back(users, user, bg, av)
+                                        
+                                                with open('users.json', 'w') as p:
+                                                    json.dump(users, p)
+                                        
+                                                await message.channel.send('Added')
+                                    elif str(reaction) == u"\u2705":
+                                        await message.delete()
+                                        bg = "https://i.imgur.com/vRuiLMg.png"
+                                        av = "Kagehisa Anotsu"
+                                        with open('users.json', 'r') as p:
+                                            users = json.load(p)
+                                
+                                        await back(users, user, bg, av)
+                                
+                                        with open('users.json', 'w') as p:
+                                            json.dump(users, p)
+                                
+                                        await message.channel.send('Added')
                             elif str(reaction) == u"\u2705":
                                 await message.delete()
                                 bg = "https://i.imgur.com/lYzFU4h.png"
@@ -650,9 +779,9 @@ async def back(users, user, bg, av):
     if f'{user.id}' in users:
         users[f'{user.id}']['bg'] = bg
         users[f'{user.id}']['av'] = av
+        return
 
 
 
         
 bot.run(token)
- 

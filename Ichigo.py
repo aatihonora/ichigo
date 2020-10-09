@@ -463,6 +463,7 @@ async def profile(ctx, member: discord.Member = None):
     if str(ctx.channel) in channels:
         if member is not None:
             id = member.id
+            member = member.mention
             if str(id) == "652067253080031233":
                 await ctx.send("I have no profile young one")
                 return
@@ -511,6 +512,7 @@ async def profile(ctx, member: discord.Member = None):
                         await ctx.send(embed=embed)
                         return
         else:
+            member = ctx.message.author
             id = ctx.message.author.id
             with open('users.json', 'r') as f:
                 users = json.load(f)

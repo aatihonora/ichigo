@@ -11,6 +11,8 @@ import math
 import mal
 from mal import AnimeSearch
 from mal import Anime
+from mal import Manga
+from mal import MangaSearch
 
 
 bot = commands.Bot(command_prefix=".")
@@ -1106,7 +1108,7 @@ async def anime(ctx, *, anime=None):
             embed = discord.Embed(title=f'{search.results[0].title}', description=f'{search.results[0].synopsis}')
             embed.set_thumbnail(url=f'{search.results[0].image_url}')
             embed.add_field(name=':star: **Score\n**', value=f' {search.results[0].score}')
-            embed.add_field(name=':tv:**Type\n**', value=f' {anime.type}')
+            embed.add_field(name=':tv: **Type\n**', value=f' {anime.type}')
             embed.add_field(name=':cd: **Genre\n**', value=f' {anime.genres}')
             embed.add_field(name=':computer: **Total Episodes\n**', value=f' {anime.episodes}')
             embed.add_field(name=':inbox_tray: **Status\n**', value=f' {anime.status}')
@@ -1114,6 +1116,31 @@ async def anime(ctx, *, anime=None):
             embed.add_field(name=':musical_note: **Endings\n**', value=f' {anime.ending_themes}')
             embed.add_field(name=':satellite: **Related Animes\n**', value=f' {anime.related_anime}')
             embed.add_field(name=':paperclip: **Link\n**', value=f' {anime.url}')
+            await ctx.send(embed=embed)
+
+
+@bot.command()
+async def manga(ctx, *, manga=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["📖┃manga"]
+    if str(ctx.channel) in channels:
+        if manga is None:
+            await ctx.send('Manga not found')
+        else:
+            search = MangaSearch(manga)
+            a = f'{search.results[0].mal_id}'
+            manga = Manga(a)
+            embed = discord.Embed(title=f'{search.results[0].title}', description=f'{search.results[0].synopsis}')
+            embed.set_thumbnail(url=f'{search.results[0].image_url}')
+            embed.add_field(name=':pencil: **Authors\n**', value=f' {manga.authors}')
+            embed.add_field(name=':star: **Score\n**', value=f' {search.results[0].score}')
+            embed.add_field(name=':page_facing_up: **Type\n**', value=f' {manga.type}')
+            embed.add_field(name=':label: **Genre\n**', value=f' {manga.genres}')
+            embed.add_field(name=':file_folder: **Volumes\n**', value=f' {manga.volumes}')
+            embed.add_field(name=':dividers: **Total Chapters\n**', value=f' {manga.chapters}')
+            embed.add_field(name=':inbox_tray: **Status\n**', value=f' {manga.status}')
+            embed.add_field(name=':ledger: **Related Mangas\n**', value=f' {manga.related_manga}')
+            embed.add_field(name=':paperclip: **Link\n**', value=f' {manga.url}')
             await ctx.send(embed=embed)
 
 

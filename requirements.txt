@@ -1,1 +1,2 @@
 discord.py==1.4.1
+mal-api==0.3.0

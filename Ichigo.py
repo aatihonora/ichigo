@@ -1098,14 +1098,14 @@ async def bank(ctx, member: discord.Member = None, *, coin=0):
 
 
 @bot.command()
-async def anime(ctx, *, anime=None):
+async def anime(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
     if str(ctx.channel) in channels:
-        if anime is None:
+        if anim is None:
             await ctx.send('Anime not found')
         else:
-            search = AnimeSearch(anime)
+            search = AnimeSearch(anim)
             a = f'{search.results[0].mal_id}'
             b = Anime(a)
             c = f'{search.results[0].image_url}'
@@ -1118,18 +1118,35 @@ async def anime(ctx, *, anime=None):
             if not entries:
                 print(f'No entries found for "{query}"')
                 return
-            
             for i, anime in enumerate(entries, 1):
-                embed=discord.Embed()
-                embed.add_field(name=f'{anime.title}:', value=f' {anime.synopsis}')    
+                j = f'{anime.synopsis}'
+                q = len(j)
+                j1 = f'{b.ending_themes}'
+                j2 = f'{b.ending_themes}'
+                q1 = len(j1)
+                q2 = len(j2)
+                if q >= 1000:
+                    i = f'{search.results[0].synopsis}'
+                else:                                                                                
+                    i = f'{anime.synopsis}'
+                if q1 >= 1000:
+                    i1 = None
+                else:                                                                                
+                    i1 = f'{b.ending_themes}'
+                if q2 >= 1000:
+                    i2 = None
+                else:                                                                                
+                    i2 = f'{b.ending_themes}'
+                embed=discord.Embed()   
                 embed.set_thumbnail(url=f'{c}')
+                embed.add_field(name=f'{anime.title}', value=f'{i}')
                 embed.add_field(name=':star: **Score\n**', value=f'{d}')
                 embed.add_field(name=':tv: **Type\n**', value=f'{b.type}')
                 embed.add_field(name=':cd: **Genre\n**', value=f'{b.genres}')
                 embed.add_field(name=':computer: **Total Episodes\n**', value=f'{b.episodes}')
                 embed.add_field(name=':inbox_tray: **Status\n**', value=f'{b.status}')
-                embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}')
-                embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}')
+                embed.add_field(name=':musical_note: **Openings\n**', value=f'{i1}')
+                embed.add_field(name=':musical_note: **Endings\n**', value=f'{i2}')
                 embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}')
             await ctx.send(embed=embed)
             return

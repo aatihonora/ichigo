@@ -1130,7 +1130,6 @@ async def anime(ctx, *, anime=None):
                 embed.add_field(name=':inbox_tray: **Status\n**', value=f'{b.status}')
                 embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}')
                 embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}')
-                embed.add_field(name=':satellite: **Related Animes\n**', value=f'{b.related_anime}')
                 embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}')
             await ctx.send(embed=embed)
             return

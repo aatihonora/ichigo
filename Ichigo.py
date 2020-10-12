@@ -1121,7 +1121,7 @@ async def anime(ctx, *, anim=None):
             for i, anime in enumerate(entries, 1):
                 j = f'{anime.synopsis}'
                 q = len(j)
-                j1 = f'{b.ending_themes}'
+                j1 = f'{b.opening_themes}'
                 j2 = f'{b.ending_themes}'
                 q1 = len(j1)
                 q2 = len(j2)
@@ -1132,7 +1132,7 @@ async def anime(ctx, *, anim=None):
                 if q1 >= 1000:
                     i1 = None
                 else:                                                                                
-                    i1 = f'{b.ending_themes}'
+                    i1 =  f'{b.opening_themes}'
                 if q2 >= 1000:
                     i2 = None
                 else:                                                                                

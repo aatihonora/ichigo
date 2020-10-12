@@ -13,6 +13,8 @@ from mal import AnimeSearch
 from mal import Anime
 from mal import Manga
 from mal import MangaSearch
+import kitsu
+
 
 
 bot = commands.Bot(command_prefix=".")
@@ -130,6 +132,7 @@ async def level_up(users, user, message):
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Setting Sun by Lord Huron"))
     print(f'{bot.user} has connected to Discord!')
 
 
@@ -1104,21 +1107,35 @@ async def anime(ctx, *, anime=None):
         else:
             search = AnimeSearch(anime)
             a = f'{search.results[0].mal_id}'
-            anime = Anime(a)
-            embed = discord.Embed(title=f'{search.results[0].title}', description=f'{search.results[0].synopsis}')
-            embed.set_thumbnail(url=f'{search.results[0].image_url}')
-            embed.add_field(name=':star: **Score\n**', value=f' {search.results[0].score}')
-            embed.add_field(name=':tv: **Type\n**', value=f' {anime.type}')
-            embed.add_field(name=':cd: **Genre\n**', value=f' {anime.genres}')
-            embed.add_field(name=':computer: **Total Episodes\n**', value=f' {anime.episodes}')
-            embed.add_field(name=':inbox_tray: **Status\n**', value=f' {anime.status}')
-            embed.add_field(name=':musical_note: **Openings\n**', value=f' {anime.opening_themes}')
-            embed.add_field(name=':musical_note: **Endings\n**', value=f' {anime.ending_themes}')
-            embed.add_field(name=':satellite: **Related Animes\n**', value=f' {anime.related_anime}')
-            embed.add_field(name=':paperclip: **Link\n**', value=f' {anime.url}')
+            b = Anime(a)
+            c = f'{search.results[0].image_url}'
+            d = f'{search.results[0].score}'
+            query = f'{search.results[0].title}'
+            client = kitsu.Client()
+            def kanime(ctx, query):
+                client = kitsu.Client()
+            entries = await client.search('anime', query, limit=1)
+            if not entries:
+                print(f'No entries found for "{query}"')
+                return
+            
+            for i, anime in enumerate(entries, 1):
+                embed=discord.Embed()
+                embed.add_field(name=f'{anime.title}:', value=f' {anime.synopsis}')    
+                embed.set_thumbnail(url=f'{c}')
+                embed.add_field(name=':star: **Score\n**', value=f'{d}')
+                embed.add_field(name=':tv: **Type\n**', value=f'{b.type}')
+                embed.add_field(name=':cd: **Genre\n**', value=f'{b.genres}')
+                embed.add_field(name=':computer: **Total Episodes\n**', value=f'{b.episodes}')
+                embed.add_field(name=':inbox_tray: **Status\n**', value=f'{b.status}')
+                embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}')
+                embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}')
+                embed.add_field(name=':satellite: **Related Animes\n**', value=f'{b.related_anime}')
+                embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}')
             await ctx.send(embed=embed)
-
-
+            return
+            
+            
 @bot.command()
 async def manga(ctx, *, manga=None):
     guild = bot.get_guild(661211931558019072)

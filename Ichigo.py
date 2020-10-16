@@ -1251,7 +1251,7 @@ async def manime(ctx, *, anim=None):
             return
 
             
-@anime.error
+@manime.error
 async def anime_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            
@@ -1303,7 +1303,7 @@ async def manimeid(ctx, *, anim=None):
             return
 
             
-@animeid.error
+@manimeid.error
 async def animeid_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            
@@ -1313,7 +1313,7 @@ async def animeid_error(ctx, error):
 @bot.command()
 @commands.has_role("Waiters")
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
-async def animeost(ctx, *, anim=None):
+async def manimeost(ctx, *, anim=None):
     member = ctx.message.author
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
@@ -1328,7 +1328,7 @@ async def animeost(ctx, *, anim=None):
             await member.send(f':musical_note: **Endings\n\n** {b.ending_themes}'[:1000])
             return
             
-@animeost.error
+@manimeost.error
 async def animeost_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            
@@ -1414,7 +1414,7 @@ async def mmanga(ctx, *, manga=None):
             await ctx.send(embed=embed)
 
             
-@manga.error
+@mmanga.error
 async def manga_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            

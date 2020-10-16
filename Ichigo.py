@@ -1446,6 +1446,7 @@ async def kmanga(ctx, *, query=None):
                 x = f'{manga.ended_at.strftime("%d-%m-%Y")}'
             embed=discord.Embed()
             embed.add_field(name=f'{manga.title}', value=f'{manga.synopsis}'[:1000])
+            embed.set_thumbnail(url=f'{manga.poster_image_url}')
             embed.add_field(name=':page_facing_up: **Type\n**', value=f'{manga.subtype}'[:1000])
             embed.add_field(name=':file_folder: **Volumes\n**', value=f'{manga.volume_count}'[:1000])
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f'{manga.chapter_count}'[:1000])

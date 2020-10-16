@@ -568,12 +568,16 @@ async def help(ctx):
                                                                 "Shows user\'s profile picture\" \n**.userinfo** = \"Shows "
                                                                 "user\'s info\" \n**.serverinfo** = \"Shows server info\" \n"
                                                                 "**.profile**= \"Shows user\'s server profile \"\n"
-                                                                "**.edit**= \"For changing customizable info\"\n"
+                                                                "**.editinfo**= \"For changing customizable info\"\n"
                                                                 "**.avatars** = \"Sends pictures to choose an avatar for the profile\"\n"
                                                                 "**.coins** = \"Shows how much coins you have\"\n"
                                                                 "**.taskdone** = \"You will earn 1000 coins you can only use it per day\"\n"
                                                                 "**.buyrole** = \"To buy available roles to get the list of available role do .roles\"\n" 
-                                                                "**.roles** = \"Shows all buyable roles\"\n", colour=0x101010)
+                                                                "**.roles** = \"Shows all buyable roles\"\n"
+                                                                "**.kiss** = \"Sends kiss gif\"\n"
+                                                                "**.hug** = \"Sends hug gif\"\n"
+                                                                "**.fist** = \"Sends fist bump gif\"\n"
+                                                                "**.slap** = \"Sends slap gif\"\n", colour=0x101010)
         await ctx.send(content=None, embed=embed)
         return
 
@@ -717,7 +721,7 @@ async def profile(ctx, member: discord.Member = None):
                 return
 
 @bot.command()
-async def edit(ctx, *, info = None):
+async def editinfo(ctx, *, info = None):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         if info is None:
@@ -942,7 +946,7 @@ async def serverinfo(ctx):
 @bot.command(aliases=['currency'])
 async def coins(ctx, member:discord.Member = None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["🤖┃machinery"]
+    channels = ["🤖┃machinery", "♠┃gambling"]
     if str(ctx.channel) in channels:
         if member is None:
             member = ctx.message.author
@@ -951,8 +955,8 @@ async def coins(ctx, member:discord.Member = None):
         with open('users.json', 'r') as f:
             users = json.load(f)
         coins = users[f'{member.id}']['coins']
-        await ctx.send(f"{member.mention} has {coins} :coin:")
-
+        ee = discord.Embed(description=f"{member.mention} has {coins} :coin:")
+        await ctx.send(embed=ee)
     
 @bot.command(aliases=['daily'])
 @commands.cooldown(1, 86400, type=commands.BucketType.user)
@@ -1067,9 +1071,9 @@ async def buyrole(ctx, *, role = None):
 @bot.command()
 async def roles(ctx):
     embed = discord.Embed()
-    embed.add_field(name="2000 :coin:  Roles\n\n", value="**(1) Survivor**\n"
+    embed.add_field(name="20000 :coin:  Roles\n\n", value="**(1) Survivor**\n"
                                                         "**(2) Looter**\n")
-    embed.add_field(name="Best Buyable Role\n\n\n", value="**(1) Pirate**\n")
+    embed.add_field(name="365000 :coin: Best Buyable Roles\n\n\n", value="**(1) Pirate**\n")
     await ctx.send(embed=embed)
 
 
@@ -1091,14 +1095,121 @@ async def bank(ctx, member: discord.Member = None, *, coin=0):
             with open('users.json', 'w') as f:
                 json.dump(users, f)
 
-            await ctx.send(f'{coin} :coin: added in the user\'s account')
+            ee = discord.Embed(description=f'{coin} :coin: added in the user\'s account')
+            await ctx.send(embed=ee)
+            
+@bot.command()
+async def take(ctx, member: discord.Member = None, *, coin=0):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        if member is None:
+            await ctx,send("Member Not Found")
+        else:
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-coin
+            users[f'{member.id}']['coins'] = c
+
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+
+            ee = discord.Embed(description=f'{coin} :coin: taken from the user\'s account')            
+            await ctx.send(embed=ee)
+
+@bot.command()
+@commands.cooldown(1, 30, type=commands.BucketType.user)
+async def kiss(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send('Member Not Found')
+        return
+    else:
+        r = ['https://i.imgur.com/ZSVDZwi.gif', 'https://i.imgur.com/50KEH5I.gif', 'https://i.imgur.com/c7tCHMx.gif', 'https://i.imgur.com/pur4RBr.gif', 'https://i.imgur.com/3p77k2o.gif']
+        d = random.choice(r)
+        embed = discord.Embed(description=f'{ctx.message.author.mention} gave kiss to {member.mention}', colour=0x000001)
+        embed.set_image(url=f'{d}')
+        await ctx.send(embed=embed)
+        
+        
+@kiss.error
+async def kiss_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)        
+        await ctx.send(f'Please try again after {c} seconds')
+        
+
+@bot.command()
+@commands.cooldown(1, 30, type=commands.BucketType.user)
+async def fist(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send('Member Not Found')
+        return
+    else:
+        r = ['https://i.imgur.com/WGx1oAd.gif', 'https://i.imgur.com/s2lHMUS.gif', 'https://i.imgur.com/mZhkabt.gif', 'https://i.imgur.com/yNynHm8.gif', 'https://i.imgur.com/W47N0qp.gif']
+        d = random.choice(r)
+        embed = discord.Embed(description=f'{ctx.message.author.mention} fist bumped with {member.mention}', colour=0x000001)
+        embed.set_image(url=f'{d}')
+        await ctx.send(embed=embed)
+        
+
+@fist.error
+async def fist_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)        
+        await ctx.send(f'Please try again after {c} seconds')
+
+        
+@bot.command()
+@commands.cooldown(1, 30, type=commands.BucketType.user)
+async def hug(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send('Member Not Found')
+        return
+    else:
+        r = ['https://i.imgur.com/tmH9kAa.gif', 'https://i.imgur.com/h0npvMN.gif', 'https://i.imgur.com/KdlCRFZ.gif', 'https://i.imgur.com/VqXqqbW.gif', 'https://i.imgur.com/wanveQs.gif']
+        d = random.choice(r)
+        embed = discord.Embed(description=f'{ctx.message.author.mention} hugged {member.mention}', colour=0x000001)
+        embed.set_image(url=f'{d}')
+        await ctx.send(embed=embed)        
+        
+        
+@hug.error
+async def hug_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)        
+        await ctx.send(f'Please try again after {c} seconds')
+
+
+@bot.command()
+@commands.cooldown(1, 30, type=commands.BucketType.user)
+async def slap(ctx, member: discord.Member = None):
+    if member is None:
+        await ctx.send('Member Not Found')
+        return
+    else:
+        r = ['https://i.imgur.com/vU5CPxB.gif', 'https://i.imgur.com/MMGztMD.gif', 'https://i.imgur.com/J3exWoi.gif', 'https://i.imgur.com/c0ImF3g.gif', 'https://i.imgur.com/XSU83EU.gif']
+        d = random.choice(r)
+        embed = discord.Embed(description=f'{ctx.message.author.mention} slapped {member.mention}', colour=0x000001)
+        embed.set_image(url=f'{d}')
+        await ctx.send(embed=embed)                
+
+
+@slap.error
+async def slap_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)
+        await ctx.send(f'Please try again after {c} seconds')
         
 
                                           #ANIME & MANGA
 
 
 @bot.command()
-async def anime(ctx, *, anim=None):
+@commands.cooldown(1, 300, type=commands.BucketType.channel)
+@commands.has_role("Waiters")
+async def manime(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
     if str(ctx.channel) in channels:
@@ -1111,6 +1222,11 @@ async def anime(ctx, *, anim=None):
             c = f'{search.results[0].image_url}'
             d = f'{search.results[0].score}'
             query = f'{search.results[0].title}'
+            re = f'{b.related_anime}'
+            if re is None:
+                ream = None
+            else:
+                ream = f'{b.related_anime}'
             client = kitsu.Client()
             def kanime(ctx, query):
                 client = kitsu.Client()
@@ -1127,16 +1243,149 @@ async def anime(ctx, *, anim=None):
                 embed.add_field(name=':cd: **Genre\n**', value=f'{b.genres}'[:1000])
                 embed.add_field(name=':computer: **Total Episodes\n**', value=f'{b.episodes}'[:1000])
                 embed.add_field(name=':inbox_tray: **Status\n**', value=f'{b.status}'[:1000])
-                embed.add_field(name=':satellite: **Related Animes\n**', value=f' {b.related_anime}'[:500])
+                embed.add_field(name=':satellite: **Related Animes\n**', value=f'{ream}'[:500])
                 embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}'[:200])
                 embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}'[:200])
                 embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}'[:1000])
             await ctx.send(embed=embed)
             return
+
             
-            
+@anime.error
+async def anime_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')
+        
+        
 @bot.command()
-async def manga(ctx, *, manga=None):
+@commands.has_role("Waiters")
+@commands.cooldown(1, 300, type=commands.BucketType.channel)
+async def manimeid(ctx, *, anim=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["👺┃anime"]
+    if str(ctx.channel) in channels:
+        if anim is None:
+            await ctx.send('Use anime mal id like 1 for Cowboy Bebop')
+        else:
+            b = Anime(anim)
+            a = f'{b.title}'
+            search = AnimeSearch(a)
+            c = f'{search.results[0].image_url}'
+            d = f'{search.results[0].score}'
+            query = f'{search.results[0].title}'
+            re = f'{b.related_anime}'
+            if re is None:                                                        
+                ream = None
+            else:
+                ream = f'{b.related_anime}'
+            client = kitsu.Client()
+            def kanime(ctx, query):
+                client = kitsu.Client()
+            entries = await client.search('anime', query, limit=1)
+            if not entries:
+                print(f'No entries found for "{query}"')
+                return
+            for i, anime in enumerate(entries, 1):
+                embed=discord.Embed()   
+                embed.set_thumbnail(url=f'{c}')
+                embed.add_field(name=f'{anime.title}', value=f'{anime.synopsis}'[:1000])
+                embed.add_field(name=':star: **Score\n**', value=f'{d}'[:1000])
+                embed.add_field(name=':tv: **Type\n**', value=f'{b.type}'[:1000])
+                embed.add_field(name=':cd: **Genre\n**', value=f'{b.genres}'[:1000])
+                embed.add_field(name=':computer: **Total Episodes\n**', value=f'{b.episodes}'[:1000])
+                embed.add_field(name=':inbox_tray: **Status\n**', value=f'{b.status}'[:1000])
+                embed.add_field(name=':satellite: **Related Animes\n**', value=f'{ream}'[:500])
+                embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}'[:200])
+                embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}'[:200])
+                embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}'[:1000])
+            await ctx.send(embed=embed)
+            return
+
+            
+@animeid.error
+async def animeid_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')
+ 
+        
+@bot.command()
+@commands.has_role("Waiters")
+@commands.cooldown(1, 300, type=commands.BucketType.channel)
+async def animeost(ctx, *, anim=None):
+    member = ctx.message.author
+    guild = bot.get_guild(661211931558019072)
+    channels = ["👺┃anime"]
+    if str(ctx.channel) in channels:
+        if anim is None:
+            await ctx.send('Anime not found')
+        else:
+            search = AnimeSearch(anim)        
+            a = f'{search.results[0].mal_id}'
+            b = Anime(a)
+            await member.send(f':musical_note: **Openings\n\n** {b.opening_themes}'[:1000])
+            await member.send(f':musical_note: **Endings\n\n** {b.ending_themes}'[:1000])
+            return
+            
+@animeost.error
+async def animeost_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')            
+            
+
+
+@bot.command()
+async def kanime(ctx, *, query=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["👺┃anime"]
+    if str(ctx.channel) in channels:
+        if query is None:
+            await ctx.send('Anime not found')
+            return
+        client = kitsu.Client()
+        entries = await client.search('anime', query, limit=1)
+        if not entries:
+            await ctx.send(f'No entries found for "{query}"')
+            return
+
+        for i, anime in enumerate(entries, 1):
+            if anime.next_release is None:
+                z = None
+            else:
+                z = f'{anime.next_release.strftime("%d-%m-%Y")}'
+            if anime.started_at is None:
+                y = None
+            else:
+                y = f'{anime.started_at.strftime("%d-%m-%Y")}'
+            if anime.ended_at is None:
+                x = None
+            else:
+                x = f'{anime.ended_at.strftime("%d-%m-%Y")}'
+            embed=discord.Embed()
+            embed.set_thumbnail(url=f'{anime.poster_image_url}')
+            embed.add_field(name=f'{anime.title}', value=f'{anime.synopsis}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{anime.average_rating}'[:1000])
+            embed.add_field(name=':tv: **Type\n**', value=f'{anime.subtype}'[:1000])
+            embed.add_field(name=':computer: **Total Episodes\n**', value=f'{anime.episode_count}'[:1000])
+            embed.add_field(name=':play_pause:  **Episode Length\n**', value=f'{anime.episode_length} minutes'[:1000])
+            embed.add_field(name=':track_next: **Next Episode\n**', value=f'{z}'[:1000])
+            embed.add_field(name=':inbox_tray: **Status\n**', value=f'{anime.status}'[:1000])
+            embed.add_field(name=':heart: **Popularity\n**', value=f'{anime.popularity_rank}'[:1000])
+            embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
+            embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
+            embed.add_field(name=':paperclip: **Link\n**', value=f'{anime.url}'[:1000])
+            await ctx.send(embed=embed)
+
+
+
+
+
+@bot.command()
+@commands.has_role("Waiters")
+@commands.cooldown(1, 300, type=commands.BucketType.channel)
+async def mmanga(ctx, *, manga=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["📖┃manga"]
     if str(ctx.channel) in channels:
@@ -1146,6 +1395,11 @@ async def manga(ctx, *, manga=None):
             search = MangaSearch(manga)
             a = f'{search.results[0].mal_id}'
             manga = Manga(a)
+            re = f'{manga.related_manga}'
+            if re is None:
+                rema = None
+            else:
+                rema = f'{manga.related_manga}'
             embed = discord.Embed(title=f'{search.results[0].title}', description=f'{search.results[0].synopsis}'[:1000])
             embed.set_thumbnail(url=f'{search.results[0].image_url}')
             embed.add_field(name=':pencil: **Authors\n**', value=f' {manga.authors}'[:1000])
@@ -1155,10 +1409,17 @@ async def manga(ctx, *, manga=None):
             embed.add_field(name=':file_folder: **Volumes\n**', value=f' {manga.volumes}'[:1000])
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f' {manga.chapters}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f' {manga.status}'[:1000])
-            embed.add_field(name=':ledger: **Related Mangas\n**', value=f' {manga.related_manga}'[:500])
+            embed.add_field(name=':ledger: **Related Mangas\n**', value=f' {rema}'[:500])
             embed.add_field(name=':paperclip: **Link\n**', value=f' {manga.url}'[:1000])
             await ctx.send(embed=embed)
 
+            
+@manga.error
+async def manga_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')
+            
 
 @bot.command()
 async def kmanga(ctx, *, query=None):
@@ -1175,16 +1436,616 @@ async def kmanga(ctx, *, query=None):
             return
 
         for i, manga in enumerate(entries, 1):
+            if manga.started_at is None:
+                y = None
+            else:
+                y = f'{manga.started_at.strftime("%d-%m-%Y")}'
+            if manga.ended_at is None:
+                x = None
+            else:
+                x = f'{manga.ended_at.strftime("%d-%m-%Y")}'
             embed=discord.Embed()
             embed.add_field(name=f'{manga.title}', value=f'{manga.synopsis}'[:1000])
             embed.add_field(name=':page_facing_up: **Type\n**', value=f'{manga.subtype}'[:1000])
             embed.add_field(name=':file_folder: **Volumes\n**', value=f'{manga.volume_count}'[:1000])
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f'{manga.chapter_count}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{manga.status}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{manga.average_rating}'[:1000])
             embed.add_field(name=':heart: **Popularity\n**', value=f'{manga.popularity_rank}'[:1000])
-            embed.add_field(name=':star: **Rating**', value=f'{manga.rating_rank}'[:1000])
+            embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
+            embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
             embed.add_field(name=':paperclip: **Link\n**', value=f'{manga.url}'[:1000])
             await ctx.send(embed=embed)
 
 
+                                          #Games & Fun
+
+
+@bot.command()
+async def cup(ctx, *, coin=0):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if coin == 0:
+            await ctx.send('Game starts with atleast 200 coins')
+            return
+        elif l < 200:
+            await ctx.send('Game starts with atleast 200 coins')
+            return
+        elif q < l:
+            await ctx.send('Not enough coins game starts with atleast 200 coins')
+            return    
+        else:
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            ans = ['1', '2', '3']
+            p = random.choice(ans)
+            embed=discord.Embed(title='Find the coin', description='1 <:cupdown:765554293239054411>      2 <:cupdown:765554293239054411>      3 <:cupdown:765554293239054411>')
+            await ctx.send(embed=embed)
+            msg = await bot.wait_for('message', check=lambda message: message.author == member)
+            uans = (msg.content)
+            if uans == p:
+                j = (l*2)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                n = str(c)
+                users[f'{member.id}']['coins'] = c
+                
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+
+                e=discord.Embed(description=f':tada: You won {j}  :coin:')
+                await ctx.send(embed=e)
+            else:
+                await ctx.send(f'Wrong the right answer was {p} <:cupup:765554378198876233> :coin:')
+                
+
+
+@bot.command()
+async def toss(ctx, *, coin=0):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if l == 0:
+            await ctx.send('Put your bet')
+            return
+        elif q < l:
+            await ctx.send('Not enough coins to play this game')
+            return    
+        else:
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            ans = ['1', '2']
+            p = random.choice(ans)
+            embed=discord.Embed(description=':coin: Write the number not the name\n\n(1)Heads\n(2)Tails')
+            await ctx.send(embed=embed)
+            msg = await bot.wait_for('message', check=lambda message: message.author == member)
+            uans = (msg.content)
+            if uans == p:
+                j = (l*2)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+                
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+
+                e=discord.Embed(description=f':tada: You won {j}  :coin:')
+                await ctx.send(embed=e)
+            else:
+                if p == '1':
+                    p = 'Heads'
+                elif p == '2':
+                    p = 'Tails'
+                await ctx.send(f'Sorry it was :coin: {p}')
+                                
+                
+@bot.command()
+async def dice(ctx, *, coin=0):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if l == 0:
+            await ctx.send('Put your bet')
+            return
+        elif q < l:
+            await ctx.send('Not enough coins to play this game')
+            return    
+        else:
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            ans = ['1', '2', '3', '4', '5', '6']
+            p = random.choice(ans)
+            pa = random.choice(ans)
+            pe = random.choice(ans)
+            bp = random.choice(ans)
+            bpa = random.choice(ans)
+            bpe = random.choice(ans)
+            embed=discord.Embed(title='Chinchirorin', description=':game_die: :game_die: :game_die:\n\n**Get Ready**')
+            await ctx.send(embed=embed)
+            time.sleep(1)               
+            if p != '1' and p == pa and p == pe:
+                j = (l*3)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+                
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+
+                e=discord.Embed(description=f':tada: You won {j}  :coin:  you got {p}, {pa}, {pe}')
+                await ctx.send(embed=e)
+            elif p == pa and p != pe:
+                if bp == bpa and bp != bpe:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pe}')
+                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    await ctx.send(embed=embed)
+                    if bpe > pe:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pa}')
+                    embed.add_field(name='Result', value=f'Bots score is {bpa}')
+                    await ctx.send(embed=embed)
+                    if bpa > pa:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bpa == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {p}')
+                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    await ctx.send(embed=embed)
+                    if bp > p:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp != bpa and bp != bpe:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pe}')
+                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    await ctx.send(embed=embed)
+                    m = (l/2)
+                    q = (l+m)
+                    j = int(q)
+                    with open('users.json', 'r') as o:
+                        users = json.load(o)
+                    coins = users[f'{member.id}']['coins']
+                    a = int(coins)
+                    c = a+j
+                    users[f'{member.id}']['coins'] = c
+                                    
+                    with open('users.json', 'w') as o:
+                        json.dump(users, o)
+                                        
+                    ee = discord.Embed()
+                    ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                    await ctx.send(embed=ee)
+            elif p == pe and p != pa:
+                if bp == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pa}')
+                    embed.add_field(name='Result', value=f'Bots score is {pa}')
+                    await ctx.send(embed=embed)
+                    if bpa > pa:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp == bpa and bp != bpe:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pe}')
+                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    await ctx.send(embed=embed)
+                    if bpe > pe:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bpa == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {p}')
+                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    await ctx.send(embed=embed)
+                    if bp > p:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp != bpa and bp != bpe:
+                    embed = discord.Embed()                                                   
+                    embed.add_field(name='Result', value=f'Your score is {pa}')
+                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    await ctx.send(embed=embed)
+                    m = (l/2)
+                    q = (l+m)
+                    j = int(q)
+                    with open('users.json', 'r') as o:
+                        users = json.load(o)
+                    coins = users[f'{member.id}']['coins']
+                    a = int(coins)
+                    c = a+j
+                    users[f'{member.id}']['coins'] = c
+                                    
+                    with open('users.json', 'w') as o:
+                        json.dump(users, o)
+                                        
+                    ee = discord.Embed()
+                    ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                    await ctx.send(embed=ee)
+            elif pa == pe and p != pa:
+                if bpa == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {p}')
+                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    await ctx.send(embed=embed)
+                    if bp > p:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+            
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp == bpa and bp != bpe:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pe}')
+                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    await ctx.send(embed=embed)
+                    if bpe > pe:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp == bpe and bp != bpa:
+                    embed = discord.Embed()
+                    embed.add_field(name='Result', value=f'Your score is {pa}')
+                    embed.add_field(name='Result', value=f'Bots score is {bpa}')
+                    await ctx.send(embed=embed)
+                    if bpa > pa:
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a-j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                        await ctx.send(embed=ee)
+                    else:
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        ee = discord.Embed()
+                        ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                elif bp != bpa and bp != bpe:
+                    embed = discord.Embed()                                          
+                    embed.add_field(name='Result', value=f'Your score is {p}')
+                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    await ctx.send(embed=embed)
+                    m = (l/2)
+                    q = (l+m)
+                    j = int(q)
+                    with open('users.json', 'r') as o:
+                        users = json.load(o)
+                    coins = users[f'{member.id}']['coins']
+                    a = int(coins)
+                    c = a+j
+                    users[f'{member.id}']['coins'] = c
+                
+                    with open('users.json', 'w') as o:
+                        json.dump(users, o)
+
+                    ee = discord.Embed()
+                    ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                    await ctx.send(embed=ee)
+            elif p != pa and p != pe:
+                if bp != bpa and bp != bpe:
+                    j = l
+                    with open('users.json', 'r') as o:
+                        users = json.load(o)
+                    coins = users[f'{member.id}']['coins']
+                    a = int(coins)
+                    c = a+j
+                    users[f'{member.id}']['coins'] = c
+                
+                    with open('users.json', 'w') as o:
+                        json.dump(users, o)
+                    
+                    ee = discord.Embed()
+                    ee.add_field(name='Draw', value=f'Draw no one got any score you got {j} :coin: back')
+                    await ctx.send(embed=ee)
+                else:
+                    ee = discord.Embed()
+                    ee.add_field(name='Lost', value=f'You didn\'t got any score you lost {l} :coin:')
+                    await ctx.send(embed=ee)
+            elif p == '1' and p == pe and p == pa:
+                j = (l*3)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a-j
+                users[f'{member.id}']['coins'] = c
+                
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+                ee = discord.Embed()
+                ee.add_field(name='Lost', value=f'You got 1,1,1 that means you lost {j} :coin:')
+                await ctx.send(embed=ee)
+         
+                
 bot.run(token)
+        

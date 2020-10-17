@@ -14,7 +14,7 @@ from mal import Anime
 from mal import Manga
 from mal import MangaSearch
 import kitsu
-
+from discord import File
 
 
 bot = commands.Bot(command_prefix=".")
@@ -139,7 +139,16 @@ async def on_ready():
                                         #STAFF COMMANDS
 
 
+@bot.command(aliases=['ufile'])
+async def userdatafile(ctx):
+    channels = ["data"]
+    if str(ctx.message.channel) in channels:
+        with open('users.json', 'r') as f:
+            await ctx.send(file=File(fp=f, filename='users.json'))
+
+
 @bot.command()
+@commands.has_role("Waiters")
 async def addav(ctx, member: discord.Member = None, *,  bg=None):
     if bg is None:
        await ctx.send("Url is must")
@@ -1337,7 +1346,7 @@ async def animeost_error(ctx, error):
 
 
 @bot.command()
-async def kanime(ctx, *, query=None):
+async def anime(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
     if str(ctx.channel) in channels:
@@ -1345,11 +1354,12 @@ async def kanime(ctx, *, query=None):
             await ctx.send('Anime not found')
             return
         client = kitsu.Client()
-        entries = await client.search('anime', query, limit=1)
+        entries = await client.search('anime', query, limit=10)
         if not entries:
             await ctx.send(f'No entries found for "{query}"')
             return
 
+        message = await ctx.send('‎')
         for i, anime in enumerate(entries, 1):
             if anime.next_release is None:
                 z = None
@@ -1376,7 +1386,19 @@ async def kanime(ctx, *, query=None):
             embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
             embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
             embed.add_field(name=':paperclip: **Link\n**', value=f'{anime.url}'[:1000])
-            await ctx.send(embed=embed)
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            def check(reaction, user):
+                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+            reaction, user = await bot.wait_for('reaction_add', check=check)
+            if str(reaction) == u"\u27A1":
+                await message.remove_reaction(u"\u27A1", user)
+                continue
+            elif str(reaction) == u"\u274C":
+                await message.delete()
+                return
 
 
 
@@ -1422,7 +1444,7 @@ async def manga_error(ctx, error):
             
 
 @bot.command()
-async def kmanga(ctx, *, query=None):
+async def manga(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["📖┃manga"]
     if str(ctx.channel) in channels:
@@ -1430,11 +1452,11 @@ async def kmanga(ctx, *, query=None):
             await ctx.send('Manga not found')
             return
         client = kitsu.Client()
-        entries = await client.search('manga', query, limit=1)
+        entries = await client.search('manga', query, limit=10)
         if not entries:
             await ctx.send(f'No entries found for "{query}"')
             return
-
+        message = await ctx.send('‎')
         for i, manga in enumerate(entries, 1):
             if manga.started_at is None:
                 y = None
@@ -1456,8 +1478,19 @@ async def kmanga(ctx, *, query=None):
             embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
             embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
             embed.add_field(name=':paperclip: **Link\n**', value=f'{manga.url}'[:1000])
-            await ctx.send(embed=embed)
-
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            def check(reaction, user):
+                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+            reaction, user = await bot.wait_for('reaction_add', check=check)
+            if str(reaction) == u"\u27A1":
+                await message.remove_reaction(u"\u27A1", user)
+                continue
+            elif str(reaction) == u"\u274C":
+                await message.delete()
+                return
 
                                           #Games & Fun
 

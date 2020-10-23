@@ -31,6 +31,10 @@ ban = ""
 unban = ""
 
 
+times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
+send_time = random.choice(times)
+
+
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
     c = ["🤖┃machinery"]
@@ -61,6 +65,29 @@ async def on_message(message, *, member: discord.Member = None):
 
     await bot.process_commands(message)
 
+    emote = [u"\u2B50"]
+    def check(reaction, user):
+        return (reaction.message.id == message.id) and (str(reaction) in emote) and (reaction.count>=1)
+    reaction, user = await bot.wait_for('reaction_add', check=check)    
+    if str(reaction) == u"\u2B50":
+        if reaction.count == 1:
+            guild = bot.get_guild(661211931558019072)
+            channel = guild.get_channel(768067718628376627)
+            emb = discord.Embed(title=f'{message.author}')
+            b = f'{message.content}'
+            if message.attachments:
+                a = message.attachments[0].url
+                if message.content:
+                    b = f'{message.content}'
+                else:
+                    b = '‎'
+                emb.set_image(url=f'{a}')
+            emb.add_field(name='**Message**', value=f'{b}')
+            i = datetime.datetime.now()
+            emb.set_footer(text=f'{i.strftime("%d-%m-%Y %I:%M %p")}  in  {message.channel}')
+            await channel.send(embed=emb)
+
+
 
 async def update_data(users, user):
     if not f'{user.id}' in users:
@@ -68,10 +95,13 @@ async def update_data(users, user):
         users[f'{user.id}']['experience'] = 0
         users[f'{user.id}']['level'] = 1
         users[f'{user.id}']['last_message'] = 0
-        users[f'{user.id}']['task_message'] = 60
         users[f'{user.id}']['info'] = None
         users[f'{user.id}']['bg'] = "https://i.imgur.com/DY2CKvu.png"
         users[f'{user.id}']['coins'] = 1000
+        users[f'{user.id}']['warnings'] = 0
+        users[f'{user.id}']['mutes'] = 0
+        users[f'{user.id}']['kicks'] = 0
+        users[f'{user.id}']['bans'] = 0
         
 
 async def add_experience(users, user, exp):
@@ -115,7 +145,7 @@ async def level_up(users, user, message):
         return
     elif lvl_end == 40:
         member = message.author
-        role = discord.utils.get(member.guild.roles, name="Monster-Hunter")
+        role = discord.utils.get(member.guild.roles, name="Monster Hunter")
         await member.add_roles(role)
         return
     elif lvl_end == 50:
@@ -126,29 +156,283 @@ async def level_up(users, user, message):
 
 
 
-
-
-
-
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Setting Sun by Lord Huron"))
     print(f'{bot.user} has connected to Discord!')
 
 
+async def time_check():
+    await bot.wait_until_ready()
+    guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(661211931558019075)
+    global send_time
+    while not bot.is_closed():
+        d = datetime.datetime.now()
+        now = d.strftime('%I:%M %p')
+        if now == send_time:
+            embed = discord.Embed(title='Drop', description=':gift: react to get it')
+            message = await channel.send(embed=embed)
+            await message.add_reaction(u"\U0001F381")
+            emote = [u"\U0001F381"]
+            def check(reaction, user):
+                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+            reaction, user = await bot.wait_for('reaction_add', check=check)                
+            if str(reaction) == u"\U0001F381":                                                              
+                await message.delete()
+                gift = random.randint(500, 3000)
+                await channel.send(f':tada: {user.mention} got {gift} :coin:')
+                with open('users.json', 'r') as i:
+                    users = json.load(i)
+                    
+                coins = users[f'{user.id}']['coins'] 
+                e = int(coins)
+                a = (e+gift)
+                users[f'{user.id}']['coins'] = a
+
+                with open('users.json', 'w') as i:
+                    json.dump(users, i)
+
+                times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
+                send_time = random.choice(times)
+            time=86400
+        else:
+            time=1
+        await asyncio.sleep(time)
+
+
+@bot.event
+async def on_message_edit(before, after):
+    guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(767027322099859477)
+    member = before.author
+    result = '{} edited *{}* to **{}** in {}'.format(before.author.mention, before.content, after.content, before.channel)
+    if member != bot.user:
+        embed = discord.Embed(title='Edited', description=f'{result}')
+        if member.is_avatar_animated():
+            avt = f"{member.avatar_url_as(format='gif')}"
+        else:
+            avt = f"{member.avatar_url_as(format='png')}"
+        embed.set_thumbnail(url=f'{avt}')
+        embed.set_footer(text=f'{member.id}')
+        await channel.send(embed=embed)
+        return
+    else:
+        return
+        
+
+@bot.event
+async def on_message_delete(message):
+    guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(767027322099859477)
+    member = message.author
+    result = '{} deleted **{}** in {}'.format(message.author.mention, message.content, message.channel)
+    if member != bot.user and "." not in message.content:
+        embed = discord.Embed(title='Deleted', description=f'{result}')
+        if member.is_avatar_animated():
+            avt = f"{member.avatar_url_as(format='gif')}"
+        else:
+            avt = f"{member.avatar_url_as(format='png')}"
+        embed.set_thumbnail(url=f'{avt}')
+        embed.set_footer(text=f'{member.id}')
+        await channel.send(embed=embed)
+        return
+    else:
+        return
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(768218843469316156)
+    if not before.channel:
+        embed = discord.Embed(title='Connected', description=f'{member.mention} **connected to** {after.channel.name}')
+        if member.is_avatar_animated():
+            avt = f"{member.avatar_url_as(format='gif')}"
+        else:
+            avt = f"{member.avatar_url_as(format='png')}"
+        embed.set_thumbnail(url=f'{avt}')
+        embed.set_footer(text=f'{member.id}')
+        await channel.send(embed=embed)
+    if before.channel and not after.channel:
+        embed = discord.Embed(title='Left', description=f'{member.mention} **left** {before.channel.name}')
+        if member.is_avatar_animated():
+            avt = f"{member.avatar_url_as(format='gif')}"
+        else:
+            avt = f"{member.avatar_url_as(format='png')}"
+        embed.set_thumbnail(url=f'{avt}')
+        embed.set_footer(text=f'{member.id}')
+        await channel.send(embed=embed)
+    if before.channel and after.channel:
+        if before.channel.id != after.channel.id:
+            embed = discord.Embed(title='Switched', description=f'{member.mention} **switched from** {before.channel.name} **to** {after.channel.name}')
+            if member.is_avatar_animated():
+                avt = f"{member.avatar_url_as(format='gif')}"
+            else:
+                avt = f"{member.avatar_url_as(format='png')}"
+            embed.set_thumbnail(url=f'{avt}')
+            embed.set_footer(text=f'{member.id}')
+            await channel.send(embed=embed)
+        else:
+            if member.voice.self_stream:
+                embed = discord.Embed(title='Switched', description=f'{member.mention} **streaming in** {before.channel.name}')
+                if member.is_avatar_animated():
+                    avt = f"{member.avatar_url_as(format='gif')}"
+                else:
+                    avt = f"{member.avatar_url_as(format='png')}"
+                embed.set_thumbnail(url=f'{avt}')
+                embed.set_footer(text=f'{member.id}')
+                await channel.send(embed=embed)
+            elif member.voice.self_mute:
+                embed = discord.Embed(title='Switched', description=f'{member.mention} **muted in** {before.channel.name}')
+                if member.is_avatar_animated():
+                    avt = f"{member.avatar_url_as(format='gif')}"
+                else:
+                    avt = f"{member.avatar_url_as(format='png')}"
+                embed.set_thumbnail(url=f'{avt}')
+                embed.set_footer(text=f'{member.id}')
+                await channel.send(embed=embed)
+            elif member.voice.self_deaf:
+                embed = discord.Embed(title='Deafened', description=f'{member.mention} **deafened in** {before.channel.name}')
+                if member.is_avatar_animated():
+                    avt = f"{member.avatar_url_as(format='gif')}"
+                else:
+                    avt = f"{member.avatar_url_as(format='png')}"
+                embed.set_thumbnail(url=f'{avt}')
+                embed.set_footer(text=f'{member.id}')
+                await channel.send(embed=embed)
+    if after.channel is not None:
+        x = {f'{member.id} : '}
+        if after.channel.name == 'Join To Make New Room':
+            cat = guild.get_channel(768363165817110558)
+            new = await guild.create_voice_channel(name=f'{member.name}\'s Room', category=cat)
+            await member.move_to(new)
+    if before.channel is not None:
+        category = 768363165817110558
+        if before.channel.category.id == category:
+            print('gg')
+            if before.channel.name == "Join To Make New Room": 
+                return
+            else:
+                if len(before.channel.members) == 0:
+                    print('ggg')
+                    await before.channel.delete()
+         
+                
+
+
                                         #STAFF COMMANDS
 
 
-@bot.command(aliases=['ufile'])
-async def userdatafile(ctx):
-    channels = ["data"]
-    if str(ctx.message.channel) in channels:
+@bot.command()
+@commands.has_role("Inn Server")
+async def mods(ctx, member: discord.Member = None):
+    channels = ["🏛┃council"]
+    if str(ctx.channel) in channels:
+        if member is None:
+            await ctx.send('Member Not Found')
+            return
+        else:
+            with open('users.json', 'r') as i:
+                users = json.load(i)
+
+            warnings = users[f'{member.id}']['warnings']
+            mutes = users[f'{member.id}']['mutes']
+            kicks = users[f'{member.id}']['kicks']
+            bans = users[f'{member.id}']['bans']
+            if member.is_avatar_animated():
+                avt = f"{member.avatar_url_as(format='gif')}"
+            else:
+                avt = f"{member.avatar_url_as(format='png')}"
+            mem_join = member.joined_at
+            now = datetime.datetime.now()
+            join_days = (now - mem_join).days
+            embed = discord.Embed(title='Moderations')
+            embed.add_field(name='User name', value=f'{member}')
+            embed.add_field(name='User age', value=f'{join_days} Days')
+            embed.add_field(name='Total warnings', value=f'{warnings}')
+            embed.add_field(name='Total mutes', value=f'{mutes}')
+            embed.add_field(name='Total kicks', value=f'{kicks}')
+            embed.add_field(name='Total bans', value=f'{bans}')
+            embed.set_thumbnail(url=f'{avt}')
+            embed.set_footer(text=f'{member.id}')
+            await ctx.send(embed=embed)
+
+
+@bot.command(aliases=['ranking'])
+async def leaderboard(ctx):
+    guild = bot.get_guild(661211931558019072)
+    channels = ['👑┃ranking-wall']
+    if str(ctx.channel) in channels:
         with open('users.json', 'r') as f:
-            await ctx.send(file=File(fp=f, filename='users.json'))
+            users = json.load(f)
+        sorted(users, key=lambda x : users[x].get('level', 0), reverse=True)
+        high_score_list = sorted(users, key=lambda x : users[x].get('level', 0), reverse=True)
+        message = ''
+        for number, user in enumerate(high_score_list):
+            message += '**{0}. <@{1}>  Level = {2}**\n\n'.format(number + 1, user, users[user].get('level', 0))
+            if number+1 > 2:
+                break 
+        embed = discord.Embed(title='Rankings', description=f'{message}')
+        channel = guild.get_channel(768031362664890378)
+        await ctx.message.delete()
+        await channel.send(embed=embed)
+        return
+
 
 
 @bot.command()
-@commands.has_role("Waiters")
+@commands.has_role("Inn Server")
+async def move(ctx, *, channel : discord.VoiceChannel):
+    await ctx.message.delete()
+    guild = bot.get_guild(661211931558019072)
+    author = ctx.message.author
+    id1 = ctx.author.voice.channel
+    for members in id1.members:
+        await members.move_to(channel)
+    await ctx.send('Done')
+
+
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def filter(ctx, *, badword=None):
+    channels = ["🏛┃council"]
+    if str(ctx.channel) in channels:
+        await ctx.message.delete()
+        if badword is None:
+            await ctx.send('Please write the word you want to filter example comma and space is must , word')
+            return
+        elif ', ' not in badword:
+            await ctx.send('Please write the word you want to filter example comma and space is must , word')
+            return
+        elif ', ' in badword:
+            bad = str(badword)
+            with open('bad-words.txt', 'a') as file:
+                file.write(bad)
+                file.close()
+            await ctx.send('Word filtered')
+        
+
+@bot.command(aliases=['ufile'])
+async def datafile(ctx, *, name=None):
+    channels = ["data"]
+    if str(ctx.message.channel) in channels:
+        if name is None:
+            await ctx.send('Enter the file you want badwords or users')
+        elif name == 'users':
+            with open('users.json', 'r') as f:
+                await ctx.send(file=File(fp=f, filename='users.json'))
+        elif name == 'badwords':
+            with open('bad-words.txt', 'r') as f:
+                await ctx.send(file=File(fp=f, filename='bad-words.txt'))
+        else:
+            await ctx.send('Enter badwords or users')
+
+
+        
+
+@bot.command()
+@commands.has_role("Inn Server")
 async def addav(ctx, member: discord.Member = None, *,  bg=None):
     if bg is None:
        await ctx.send("Url is must")
@@ -186,7 +470,7 @@ async def addbg(ctx, users, member, bg):
 
 
 @bot.command()
-@commands.has_role("Waiters")
+@commands.has_role("Inn Server")
 async def nick(ctx, member: discord.Member = None, *, name=None):
     if member is None:
         await ctx.message.delete()
@@ -203,7 +487,7 @@ async def nick(ctx, member: discord.Member = None, *, name=None):
 
 
 @bot.command()
-@commands.has_role("Inn Keepers")
+@commands.has_role("Inn Keeper")
 async def event(ctx, user: discord.Member = None):
     channels = ["🗣┃event-wall"]
     if str(ctx.message.channel) in channels:
@@ -231,7 +515,7 @@ async def event(ctx, user: discord.Member = None):
 
 
 @bot.command()
-@commands.has_role("Waiters")
+@commands.has_role("Inn Server")
 async def staff(ctx):
     channels = ["🏛┃council"]
     if str(ctx.channel) in channels:
@@ -244,13 +528,13 @@ async def staff(ctx):
 
 
 @bot.command(aliases=["purge"])
-@commands.has_role("Inn Keepers")
+@commands.has_role("Inn Keeper")
 async def clear(ctx, amount=100):
     await ctx.channel.purge(limit=amount)
 
 
 @bot.command(aliases=["w"])
-@commands.has_role('Waiters')
+@commands.has_role('Inn Server')
 async def warn(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
@@ -267,7 +551,7 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
         return
     else:
         member == member
-        staff = discord.utils.get(member.guild.roles, name="Waiters")
+        staff = discord.utils.get(member.guild.roles, name="Inn Server")
         if staff in member.roles:
             await ctx.message.delete()
             await ctx.send("You can't warn the staff member")
@@ -286,7 +570,18 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
                                                         f"**Reason:** {reason}")
             em.set_footer(text=f"{member.id}")
             await channel.send(embed=em)
-            print(f"Time: {time.asctime( time.localtime(time.time()) )}, Warn: {warn}\n")
+            with open('users.json', 'r') as i:
+                users = json.load(i)
+                    
+            warnings = users[f'{member.id}']['warnings'] 
+            e = int(warnings)
+            ea = (e+1)
+            a = str(ea)
+            users[f'{member.id}']['warnings'] = a
+
+            with open('users.json', 'w') as i:
+                json.dump(users, i)
+    
             try:
                 with open("stats.txt", "a") as f:
                     f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Warn: {warn}\n")
@@ -296,7 +591,7 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
 
 
 @bot.command(aliases=["k"])
-@commands.has_role('Waiters')
+@commands.has_role('Inn Server')
 async def kick(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
@@ -313,7 +608,7 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
         return
     else:
         member == member
-        staff = discord.utils.get(member.guild.roles, name="Waiters")
+        staff = discord.utils.get(member.guild.roles, name="Inn Server")
         if staff in member.roles:
             await ctx.message.delete()
             await ctx.send("You can't kick the staff member")
@@ -332,7 +627,18 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
             await channel.send(embed=em)
             global kick
             kick = "({1}) kicked ({0}) reason ({2})".format(member, ctx.message.author, reason)
-            print(f"Time: {time.asctime( time.localtime(time.time()) )}, Kick: {kick}\n")
+            with open('users.json', 'r') as i:
+                users = json.load(i)
+                    
+            kicks = users[f'{member.id}']['kicks'] 
+            e = int(kicks)
+            ea = (e+1)
+            a = str(ea)
+            users[f'{member.id}']['kicks'] = a
+
+            with open('users.json', 'w') as i:
+                json.dump(users, i)
+                
             try:
                 with open("stats.txt", "a") as f:
                     f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Kick: {kick}\n")
@@ -342,7 +648,7 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
 
 
 @bot.command(aliases=["b"])
-@commands.has_role('Inn Keepers')
+@commands.has_role('Inn Keeper')
 async def ban(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
@@ -371,7 +677,18 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
         await channel.send(embed=em)
         global ban
         ban = "({1}) banned ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Ban: {ban}\n")
+        with open('users.json', 'r') as i:
+            users = json.load(i)
+                
+        bans = users[f'{member.id}']['bans'] 
+        e = int(bans)
+        ea = (e+1)
+        a = str(ea)
+        users[f'{member.id}']['bans'] = a
+
+        with open('users.json', 'w') as i:
+            json.dump(users, i)
+            
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Ban: {ban}\n")
@@ -381,7 +698,7 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
 
 
 @bot.command(aliases=["sban"])
-@commands.has_role('Inn Keepers')
+@commands.has_role('Inn Keeper')
 async def serverban(ctx, id: int = None, *, reason=None):
     if id is None:
         await ctx.message.delete()
@@ -409,7 +726,18 @@ async def serverban(ctx, id: int = None, *, reason=None):
         global ban
         reason=reason
         sban = "({1}) server banned ({0}) reason ({2})".format(id, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Serverban: {sban}\n")
+        with open('users.json', 'r') as i:
+            users = json.load(i)
+                
+        bans = users[f'{member.id}']['bans'] 
+        e = int(bans)
+        ea = (e+1)
+        a = str(ea)
+        users[f'{member.id}']['bans'] = a
+
+        with open('users.json', 'w') as i:
+            json.dump(users, i)
+            
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, SBan: {sban}\n")
@@ -419,7 +747,7 @@ async def serverban(ctx, id: int = None, *, reason=None):
 
             
 @bot.command(aliases=["ub"])
-@commands.has_role('Inn Keepers')
+@commands.has_role('Inn Keeper')
 async def unban(ctx, id: int = None, *, reason=None):
     if id is None:
         await ctx.message.delete()
@@ -457,7 +785,7 @@ async def unban(ctx, id: int = None, *, reason=None):
 
 
 @bot.command(aliases=["m"])
-@commands.has_role('Waiters')
+@commands.has_role('Inn Server')
 async def mute(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
@@ -470,7 +798,7 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
         return
     else:
         member == member
-    staff = discord.utils.get(member.guild.roles, name="Waiters")
+    staff = discord.utils.get(member.guild.roles, name="Inn Server")
     role = discord.utils.get(member.guild.roles, name="Muted")
     if role in member.roles:
         await ctx.message.delete()
@@ -495,7 +823,18 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
         await channel.send(embed=em)
         global mute
         mute = "({1}) muted ({0}) reason ({2})".format(member, ctx.message.author, reason)
-        print(f"Time: {time.asctime( time.localtime(time.time()) )}, Mute: {mute}\n")
+        with open('users.json', 'r') as i:
+            users = json.load(i)
+                
+        mutes = users[f'{member.id}']['mutes'] 
+        e = int(mutes)
+        ea = (e+1)
+        a = str(ea)
+        users[f'{member.id}']['mutes'] = a
+
+        with open('users.json', 'w') as i:
+            json.dump(users, i)
+            
         try:
             with open("stats.txt", "a") as f:
                 f.write(f"Time: {time.asctime( time.localtime(time.time()) )}, Mute: {mute}\n")
@@ -505,7 +844,7 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
 
 
 @bot.command(pass_context = True, aliases=["um"])
-@commands.has_role('Waiters')
+@commands.has_role('Inn Server')
 async def unmute(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
@@ -560,12 +899,60 @@ async def on_member_join(member):
     e = discord.Embed()
     e.set_image(url="https://cdn.discordapp.com/attachments/686941615490596922/686941777248124940/Underworld.jpg")
     guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(767016027015610389)
+    embed = discord.Embed(title='Joined', description=f'{member.mention} has joined the server')
+    if member.is_avatar_animated():
+        avt = f"{member.avatar_url_as(format='gif')}"
+    else:
+        avt = f"{member.avatar_url_as(format='png')}"
+    embed.set_thumbnail(url=f'{avt}')
+    embed.set_footer(text=f'{member.id}')
+    await channel.send(embed=embed)
     for channel in member.guild.channels:
         if str(channel) == "⚔┃wanderers-guild":
             await channel.send(f"""Welcome to the **{guild.name}** {member.mention} """, embed=e)
 
 
+@bot.event
+async def on_member_remove(member):
+    guild = bot.get_guild(661211931558019072)
+    channel = guild.get_channel(767016027015610389)
+    embed = discord.Embed(title='Left', description=f'{member.mention} has left the server')
+    if member.is_avatar_animated():
+        avt = f"{member.avatar_url_as(format='gif')}"
+    else:
+        avt = f"{member.avatar_url_as(format='png')}"
+    embed.set_thumbnail(url=f'{avt}')
+    embed.set_footer(text=f'{member.id}')
+    await channel.send(embed=embed)
+
+
                                         #MEMBER COMMANDS
+
+
+@bot.command()
+async def suggest(ctx):
+    guild = bot.get_guild(661211931558019072)                                               
+    channel = guild.get_channel(767481506444345394)
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        member = ctx.author
+        await ctx.send('Please write the suggestion')
+        try:
+            suggestion = await bot.wait_for('message', timeout=120.0, check=lambda message: message.author == member)
+            em = discord.Embed(title=f'Suggested by {member}', description=f'\n{suggestion.content}')
+            if member.is_avatar_animated():                                          
+                avt = f"{member.avatar_url_as(format='gif')}"                   
+            else:                                          
+                avt = f"{member.avatar_url_as(format='png')}"             
+            em.set_thumbnail(url=f'{avt}')                                                     
+            em.set_footer(text=f'{member.id}')                                                   
+            await channel.send(embed=em)
+            await ctx.send('Done')
+        except asyncio.TimeoutError:
+            await ctx.send('Timeout try again')
+
+
 
 
 @bot.command()
@@ -586,7 +973,15 @@ async def help(ctx):
                                                                 "**.kiss** = \"Sends kiss gif\"\n"
                                                                 "**.hug** = \"Sends hug gif\"\n"
                                                                 "**.fist** = \"Sends fist bump gif\"\n"
-                                                                "**.slap** = \"Sends slap gif\"\n", colour=0x101010)
+                                                                "**.slap** = \"Sends slap gif\"\n"
+                                                                "**.suggest** = \"You can send suggestions through this command\"\n"
+                                                                "**.cup** = \"A game of cups you have to find the coin\"\n"
+                                                                "**.toss** = \"Tosses the coin\"\n"
+                                                                "**.dice** = \"Game of dice where you need two matching dice and the third one will be the score\"\n"
+                                                                "**.bj** = \"BlackJack you need to keep the score under or equal to 21\"\n"
+                                                                "**.war** = \"War is a card game where you call high or low card if you get it right you will win\"\n"
+                                                                "**.give** = \"Transfer coins to other user\"\n"
+                                                                , colour=0x101010)
         await ctx.send(content=None, embed=embed)
         return
 
@@ -1081,18 +1476,18 @@ async def buyrole(ctx, *, role = None):
 async def roles(ctx):
     embed = discord.Embed()
     embed.add_field(name="20000 :coin:  Roles\n\n", value="**(1) Survivor**\n"
-                                                        "**(2) Looter**\n")
+                                                        "**(2) Plunderer**\n")
     embed.add_field(name="365000 :coin: Best Buyable Roles\n\n\n", value="**(1) Pirate**\n")
     await ctx.send(embed=embed)
 
 
 @bot.command()
-async def bank(ctx, member: discord.Member = None, *, coin=0):
+async def transfer(ctx, member: discord.Member = None, *, coin=0):
     guild = bot.get_guild(661211931558019072)
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         if member is None:
-            await ctx,send("Member Not Found")
+            await ctx.send("Member Not Found")
         else:
             with open('users.json', 'r') as f:
                 users = json.load(f)
@@ -1104,8 +1499,9 @@ async def bank(ctx, member: discord.Member = None, *, coin=0):
             with open('users.json', 'w') as f:
                 json.dump(users, f)
 
-            ee = discord.Embed(description=f'{coin} :coin: added in the user\'s account')
+            ee = discord.Embed(description=f'{coin} :coin: added in the {member.mention}\'s account')
             await ctx.send(embed=ee)
+
             
 @bot.command()
 async def take(ctx, member: discord.Member = None, *, coin=0):
@@ -1113,7 +1509,7 @@ async def take(ctx, member: discord.Member = None, *, coin=0):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         if member is None:
-            await ctx,send("Member Not Found")
+            await ctx.send("Member Not Found")
         else:
             with open('users.json', 'r') as f:
                 users = json.load(f)
@@ -1125,8 +1521,51 @@ async def take(ctx, member: discord.Member = None, *, coin=0):
             with open('users.json', 'w') as f:
                 json.dump(users, f)
 
-            ee = discord.Embed(description=f'{coin} :coin: taken from the user\'s account')            
+            ee = discord.Embed(description=f'{coin} :coin: taken from {member.mention}')            
             await ctx.send(embed=ee)
+
+
+@bot.command()
+async def give(ctx, member: discord.Member = None, *, coin=0):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🤖┃machinery"]
+    user = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{user.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    if str(ctx.channel) in channels:
+        if member is None:
+            await ctx.send("Member Not Found")
+        elif q < l:
+            await ctx.send("Not enough coins")
+        elif l == 0:
+            await ctx.send("Specify the amount of coins you want to give")
+        else:
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{user.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{user.id}']['coins'] = c
+
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a+l
+            users[f'{member.id}']['coins'] = c
+
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            embed = discord.Embed(description=f'You gave {coin} :coin: to {member.mention}')
+            await ctx.send(embed=embed)
+
 
 @bot.command()
 @commands.cooldown(1, 30, type=commands.BucketType.user)
@@ -1217,7 +1656,6 @@ async def slap_error(ctx, error):
 
 @bot.command()
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
-@commands.has_role("Waiters")
 async def manime(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
@@ -1268,7 +1706,6 @@ async def anime_error(ctx, error):
         
         
 @bot.command()
-@commands.has_role("Waiters")
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def manimeid(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
@@ -1320,7 +1757,6 @@ async def animeid_error(ctx, error):
  
         
 @bot.command()
-@commands.has_role("Waiters")
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def manimeost(ctx, *, anim=None):
     member = ctx.message.author
@@ -1349,6 +1785,7 @@ async def animeost_error(ctx, error):
 async def anime(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["👺┃anime"]
+    member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
             await ctx.send('Anime not found')
@@ -1383,29 +1820,38 @@ async def anime(ctx, *, query=None):
             embed.add_field(name=':track_next: **Next Episode\n**', value=f'{z}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{anime.status}'[:1000])
             embed.add_field(name=':heart: **Popularity\n**', value=f'{anime.popularity_rank}'[:1000])
-            embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
-            embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
+            embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
             embed.add_field(name=':paperclip: **Link\n**', value=f'{anime.url}'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")
             emote = [u"\u27A1", u"\u274C"]
-            def check(reaction, user):
-                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-            reaction, user = await bot.wait_for('reaction_add', check=check)
-            if str(reaction) == u"\u27A1":
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
                 await message.remove_reaction(u"\u27A1", user)
-                continue
-            elif str(reaction) == u"\u274C":
-                await message.delete()
-                return
-
-
+                await message.remove_reaction(u"\u274C", user)
+                break
+                
+        await message.remove_reaction(u"\u27A1", user)         
+        await message.remove_reaction(u"\u274C", user)
+        await asyncio.sleep(60)
+        await message.delete()
+        return
+        
 
 
 
 @bot.command()
-@commands.has_role("Waiters")
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def mmanga(ctx, *, manga=None):
     guild = bot.get_guild(661211931558019072)
@@ -1447,6 +1893,7 @@ async def manga_error(ctx, error):
 async def manga(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["📖┃manga"]
+    member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
             await ctx.send('Manga not found')
@@ -1468,29 +1915,40 @@ async def manga(ctx, *, query=None):
                 x = f'{manga.ended_at.strftime("%d-%m-%Y")}'
             embed=discord.Embed()
             embed.add_field(name=f'{manga.title}', value=f'{manga.synopsis}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{manga.average_rating}'[:1000])
             embed.set_thumbnail(url=f'{manga.poster_image_url}')
             embed.add_field(name=':page_facing_up: **Type\n**', value=f'{manga.subtype}'[:1000])
             embed.add_field(name=':file_folder: **Volumes\n**', value=f'{manga.volume_count}'[:1000])
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f'{manga.chapter_count}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{manga.status}'[:1000])
-            embed.add_field(name=':star: **Rating\n**', value=f'{manga.average_rating}'[:1000])
             embed.add_field(name=':heart: **Popularity\n**', value=f'{manga.popularity_rank}'[:1000])
-            embed.add_field(name=':hourglass_flowing_sand: **Started\n**', value=f'{y}'[:1000])
-            embed.add_field(name=':hourglass: **Ended\n**', value=f'{x}'[:1000])
+            embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
             embed.add_field(name=':paperclip: **Link\n**', value=f'{manga.url}'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")
             emote = [u"\u27A1", u"\u274C"]
-            def check(reaction, user):
-                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-            reaction, user = await bot.wait_for('reaction_add', check=check)
-            if str(reaction) == u"\u27A1":
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
                 await message.remove_reaction(u"\u27A1", user)
-                continue
-            elif str(reaction) == u"\u274C":
-                await message.delete()
-                return
+                await message.remove_reaction(u"\u274C", user)
+                break
+
+        await message.remove_reaction(u"\u27A1", user)
+        await message.remove_reaction(u"\u274C", user)      
+        await asyncio.sleep(60)
+        await message.delete()
+        
 
                                           #Games & Fun
 
@@ -1529,7 +1987,7 @@ async def cup(ctx, *, coin=0):
                 
             ans = ['1', '2', '3']
             p = random.choice(ans)
-            embed=discord.Embed(title='Find the coin', description='1 <:cupdown:765554293239054411>      2 <:cupdown:765554293239054411>      3 <:cupdown:765554293239054411>')
+            embed=discord.Embed(title='Find the coin', description='1 <:cupdown:767373888371425283>      2 <:cupdown:767373888371425283>      3 <:cupdown:767373888371425283>')
             await ctx.send(embed=embed)
             msg = await bot.wait_for('message', check=lambda message: message.author == member)
             uans = (msg.content)
@@ -1549,7 +2007,7 @@ async def cup(ctx, *, coin=0):
                 e=discord.Embed(description=f':tada: You won {j}  :coin:')
                 await ctx.send(embed=e)
             else:
-                await ctx.send(f'Wrong the right answer was {p} <:cupup:765554378198876233> :coin:')
+                await ctx.send(f'Wrong the right answer was {p} <:cupup:767373971137101886> :coin:')
                 
 
 
@@ -1622,11 +2080,17 @@ async def dice(ctx, *, coin=0):
     channels = ["♠┃gambling"]
     if str(ctx.channel) in channels:
         if l == 0:
-            await ctx.send('Put your bet')
+            await ctx.send('Put your bet\nMinimum = 100\nMaximum = 10000')
             return
         elif q < l:
             await ctx.send('Not enough coins to play this game')
             return    
+        elif l < 100:
+            await ctx.send('Minimum = 100')
+            return
+        elif l > 10000:
+            await ctx.send('Maximum = 10000')
+            return
         else:
             member = ctx.message.author
             with open('users.json', 'r') as f:
@@ -1639,14 +2103,14 @@ async def dice(ctx, *, coin=0):
             with open('users.json', 'w') as f:
                 json.dump(users, f)
                 
-            ans = ['1', '2', '3', '4', '5', '6']
+            ans = [u"\u2680", u"\u2681", u"\u2682", u"\u2683", u"\u2684", u"\u2685"]
             p = random.choice(ans)
             pa = random.choice(ans)
             pe = random.choice(ans)
             bp = random.choice(ans)
             bpa = random.choice(ans)
             bpe = random.choice(ans)
-            embed=discord.Embed(title='Chinchirorin', description=':game_die: :game_die: :game_die:\n\n**Get Ready**')
+            embed=discord.Embed(title='Chinchirorin', description=':game_die: :game_die: :game_die:\n\n**Rolling**')
             await ctx.send(embed=embed)
             time.sleep(1)               
             if p != '1' and p == pa and p == pe:
@@ -1661,13 +2125,13 @@ async def dice(ctx, *, coin=0):
                 with open('users.json', 'w') as o:
                     json.dump(users, o)
 
-                e=discord.Embed(description=f':tada: You won {j}  :coin:  you got {p}, {pa}, {pe}')
+                e=discord.Embed(description=f':tada: You won {j}  :coin:  you got {p} {pa} {pe}')
                 await ctx.send(embed=e)
             elif p == pa and p != pe:
                 if bp == bpa and bp != bpe:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pe}')
-                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    embed.add_field(name='Result', value=f'Your score is {pe}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpe}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     if bpe > pe:
                         j = l
@@ -1685,7 +2149,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpe < pe:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1699,13 +2163,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)                     
+                    elif bpe == pe:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bp == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pa}')
-                    embed.add_field(name='Result', value=f'Bots score is {bpa}')
+                    embed.add_field(name='Result', value=f'Your score is {pe}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpa}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bpa > pa:
+                    if bpa > pe:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1720,7 +2199,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpa < pe:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1734,13 +2213,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                    elif bpa == pe:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                    
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bpa == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {p}')
-                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    embed.add_field(name='Result', value=f'Your score is {pe}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bp}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bp > p:
+                    if bp > pe:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1755,7 +2249,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bp < pe:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1770,10 +2264,25 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
                         await ctx.send(embed=ee)
+                    elif bp == pe:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
+                        await ctx.send(embed=ee)
                 elif bp != bpa and bp != bpe:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pe}')
-                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    embed.add_field(name='Result', value=f'Your score is {pe}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is 0\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     m = (l/2)
                     q = (l+m)
@@ -1794,8 +2303,8 @@ async def dice(ctx, *, coin=0):
             elif p == pe and p != pa:
                 if bp == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pa}')
-                    embed.add_field(name='Result', value=f'Bots score is {pa}')
+                    embed.add_field(name='Result', value=f'Your score is {pa}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpa}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     if bpa > pa:
                         j = l
@@ -1812,7 +2321,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpa < pa:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1826,13 +2335,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                    elif bpa == pa:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bp == bpa and bp != bpe:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pe}')
-                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    embed.add_field(name='Result', value=f'Your score is {pa}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpe}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bpe > pe:
+                    if bpe > pa:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1847,7 +2371,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpe < pa:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1861,13 +2385,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                    elif bpe == pa:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bpa == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {p}')
-                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    embed.add_field(name='Result', value=f'Your score is {pa}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bp}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bp > p:
+                    if bp > pa:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1882,7 +2421,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bp < pa:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1897,10 +2436,25 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
                         await ctx.send(embed=ee)
+                    elif bp == pa:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
+                        await ctx.send(embed=ee)
                 elif bp != bpa and bp != bpe:
                     embed = discord.Embed()                                                   
-                    embed.add_field(name='Result', value=f'Your score is {pa}')
-                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    embed.add_field(name='Result', value=f'Your score is {pa}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is 0\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     m = (l/2)
                     q = (l+m)
@@ -1921,8 +2475,8 @@ async def dice(ctx, *, coin=0):
             elif pa == pe and p != pa:
                 if bpa == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {p}')
-                    embed.add_field(name='Result', value=f'Bots score is {bp}')
+                    embed.add_field(name='Result', value=f'Your score is {p}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bp}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     if bp > p:
                         j = l
@@ -1939,7 +2493,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bp < p:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1953,13 +2507,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                    elif bp == p:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bp == bpa and bp != bpe:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pe}')
-                    embed.add_field(name='Result', value=f'Bots score is {bpe}')
+                    embed.add_field(name='Result', value=f'Your score is {p}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpe}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bpe > pe:
+                    if bpe > p:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1974,7 +2543,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpe < p:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -1988,13 +2557,28 @@ async def dice(ctx, *, coin=0):
                     
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
+                        await ctx.send(embed=ee)
+                    elif bpe == p:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                         await ctx.send(embed=ee)
                 elif bp == bpe and bp != bpa:
                     embed = discord.Embed()
-                    embed.add_field(name='Result', value=f'Your score is {pa}')
-                    embed.add_field(name='Result', value=f'Bots score is {bpa}')
+                    embed.add_field(name='Result', value=f'Your score is {p}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is {bpa}\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
-                    if bpa > pa:
+                    if bpa > p:
                         j = l
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -2009,7 +2593,7 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                         await ctx.send(embed=ee)
-                    else:
+                    elif bpa < p:
                         j = (l*2)
                         with open('users.json', 'r') as o:
                             users = json.load(o)
@@ -2024,10 +2608,25 @@ async def dice(ctx, *, coin=0):
                         ee = discord.Embed()
                         ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
                         await ctx.send(embed=ee)
+                    elif bpa == p:
+                        i = (l/10)
+                        j = (l+i)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        ee = discord.Embed()
+                        ee.add_field(name='Draw', value=f'You got {j} :coin: back')
+                        await ctx.send(embed=ee)
                 elif bp != bpa and bp != bpe:
                     embed = discord.Embed()                                          
-                    embed.add_field(name='Result', value=f'Your score is {p}')
-                    embed.add_field(name='Result', value=f'Bot didn\'t got any score')
+                    embed.add_field(name='Result', value=f'Your score is {p}\n{p} {pa} {pe}')
+                    embed.add_field(name='Result', value=f'Bot\'s score is 0\n{bp} {bpa} {bpe}')
                     await ctx.send(embed=embed)
                     m = (l/2)
                     q = (l+m)
@@ -2045,8 +2644,8 @@ async def dice(ctx, *, coin=0):
                     ee = discord.Embed()
                     ee.add_field(name='Won', value=f':tada: You Won {j} :coin:')
                     await ctx.send(embed=ee)
-            elif p != pa and p != pe:
-                if bp != bpa and bp != bpe:
+            elif p != pa and p != pe and pa != pe:
+                if bp != bpa and bp != bpe and bpa != bpe:
                     j = l
                     with open('users.json', 'r') as o:
                         users = json.load(o)
@@ -2059,11 +2658,30 @@ async def dice(ctx, *, coin=0):
                         json.dump(users, o)
                     
                     ee = discord.Embed()
-                    ee.add_field(name='Draw', value=f'Draw no one got any score you got {j} :coin: back')
+                    ee.add_field(name='Result', value=f'Your score is 0\n{p} {pa} {pe}')
+                    ee.add_field(name='Result', value=f'Bot\'s score is 0\n{bp} {bpa} {bpe}')
+                    ee.add_field(name='Draw', value=f'You got {j} :coin: back')
                     await ctx.send(embed=ee)
-                else:
+                elif bpa == bpe and bp != bpa:
+                    j = l
                     ee = discord.Embed()
-                    ee.add_field(name='Lost', value=f'You didn\'t got any score you lost {l} :coin:')
+                    ee.add_field(name='Result', value=f'Your score is 0\n{p} {pa} {pe}')
+                    ee.add_field(name='Result', value=f'Bot\'s score is {bp}\n{bp} {bpa} {bpe}')
+                    ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                    await ctx.send(embed=ee)
+                elif bp == bpe and bp != bpa:
+                    j = l
+                    ee = discord.Embed()
+                    ee.add_field(name='Result', value=f'Your score is 0\n{p} {pa} {pe}')
+                    ee.add_field(name='Result', value=f'Bot\'s score is {bpa}\n{bp} {bpa} {bpe}')
+                    ee.add_field(name='Lost', value=f'You lost {j} :coin:')
+                    await ctx.send(embed=ee)
+                elif bp == bpa and bp != bpe:
+                    j = l
+                    ee = discord.Embed()
+                    ee.add_field(name='Result', value=f'Your score is 0\n{p} {pa} {pe}')
+                    ee.add_field(name='Result', value=f'Bot\'s score is {bpe}\n{bp} {bpa} {bpe}')
+                    ee.add_field(name='Lost', value=f'You lost {j} :coin:')
                     await ctx.send(embed=ee)
             elif p == '1' and p == pe and p == pa:
                 j = (l*3)
@@ -2077,9 +2695,1465 @@ async def dice(ctx, *, coin=0):
                 with open('users.json', 'w') as o:
                     json.dump(users, o)
                 ee = discord.Embed()
-                ee.add_field(name='Lost', value=f'You got 1,1,1 that means you lost {j} :coin:')
+                ee.add_field(name='Lost', value=f'You got {p} {pa} {pe} that means you lost {j} :coin:')
                 await ctx.send(embed=ee)
-         
+
+
                 
+@bot.command()
+async def bj(ctx, *, coin=0):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if l == 0:
+            await ctx.send('Put your bet')
+            return
+        elif q < l:
+            await ctx.send('Not enough coins to play this game')
+            return    
+        else:
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            cards = {
+                        '<:s1:768850367299059743>' : '1', '<:s2:768850837103312956>' : '2', '<:s3:768850899945783306>' : '3', '<:s4:768850944372506634>' : '4', '<:s5:768850999716085821>' : '5', '<:s6:768851264653492255>' : '6', '<:s7:768851446183231518>' : '7', '<:s8:768851501752778752>' : '8', '<:s9:768851558246907925>' : '9', '<:s10:768851614265770027>' : '10', '<:s11:768852890164133899>' : '10', '<:s12:768853368591482920>' : '10', '<:s13:768853449676292126>' : '10',
+                        '<:c1:769137965011173407>' : '1', '<:c2:769138045060120577>' : '2', '<:c3:769138140018769931>' : '3', '<:c4:769138233425526785>' : '4', '<:c5:769138319527116801>' : '5', '<:c6:769138409284436009>' : '6', '<:c7:769139223072604160>' : '7', '<:c8:769139406170357761>' : '8', '<:c9:769139511980458014>' : '9', '<:c10:769139572524187668>' : '10', '<:c11:769139639369334785>' : '10', '<:c12:769139714094661652>' : '10', '<:c13:769139782579257364>' : '10',
+                        '<:h1:769134733854244874>' : '1', '<:h2:769134834139922472>' : '2', '<:h3:769134950216630301>' : '3', '<:h4:769135040759201792>' : '4', '<:h5:769135134653153310>' : '5', '<:h6:769135246490075136>' : '6', '<:h7:769135338961502249>' : '7', '<:h8:769135437138231306>' : '8', '<:h9:769135546642726942>' : '9', '<:h10:769135637906980875>' : '10', '<:h11:769135928815517716>' : '10', '<:h12:769136041646096394>' : '10', '<:h13:769136141865189376>' : '10',
+                        '<:d1:769136359847624714>' : '1', '<:d2:769136487895007232>' : '2', '<:d3:769136555746131968>' : '3', '<:d4:769136642572812319>' : '4', '<:d5:769136717218971658>' : '5', '<:d6:769136799213158400>' : '6', '<:d7:769136883267534848>' : '7', '<:d8:769136966981517312>' : '8', '<:d9:769137055779127297>' : '9', '<:d10:769137144878858280>' : '10', '<:d11:769137268505313320>' : '10', '<:d12:769137356518195240>' : '10', '<:d13:769137443286417428>' : '10'
+                    }
+            usercard1 = random.choice(list(cards.items()))
+            usercard2 = random.choice(list(cards.items()))
+            botcard1 = random.choice(list(cards.items()))
+            a1 = int(usercard1[1])
+            a2 = int(usercard2[1])
+            b1 = int(botcard1[1])
+            at0 = a1+a2
+            embed = discord.Embed(title='Blackjack')
+            embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+            embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+            embed.set_footer(text='Hit or Stay')
+            await ctx.send(embed=embed)
+            msg = await bot.wait_for('message', check=lambda message: message.author == member)
+            uans = (msg.content)
+            if uans == 'Hit' or uans == 'hit':
+                usercard3 = random.choice(list(cards.items()))
+                a3 = int(usercard3[1])
+                at1 = at0+a3
+                if at1 > 21:
+                    embed = discord.Embed(title='Blackjack')
+                    embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                    embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                    embed.set_footer(text='Busted you lost')
+                    await ctx.send(embed=embed)
+                    return
+                elif at1 == 21:
+                    botcard2 = random.choice(list(cards.items()))
+                    botcard3 = random.choice(list(cards.items()))
+                    b2 = int(botcard2[1])
+                    b3 = int(botcard3[1])
+                    bt = b1+b2+b3
+                    if bt < 21:
+                        botcard4 = random.choice(list(cards.items()))                                                   
+                        b4 = int(botcard4[1])
+                        bt1 = bt+b4
+                        if bt1 < 21:
+                            botcard5 = random.choice(list(cards.items()))
+                            b5 = int(botcard5[1])
+                            bt2 = bt1+b5
+                            if bt2 < 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='You Won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt > 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='Dealer busted you won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt == 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='Draw')
+                                j = l
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+
+                            await ctx.send(embed=embed)
+                            return
+                        elif bt > 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                            embed.set_footer(text='You Won')
+                            j = (l*2)
+                            with open('users.json', 'r') as o:
+                                users = json.load(o)
+                            coins = users[f'{member.id}']['coins']
+                            a = int(coins)
+                            c = a+j
+                            users[f'{member.id}']['coins'] = c
+                
+                            with open('users.json', 'w') as o:
+                                json.dump(users, o)
+                    
+                            await ctx.send(embed=embed)
+                            return
+                        elif bt == 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                            embed.set_footer(text='Draw')
+                            j = l
+                            with open('users.json', 'r') as o:
+                                users = json.load(o)
+                            coins = users[f'{member.id}']['coins']
+                            a = int(coins)
+                            c = a+j
+                            users[f'{member.id}']['coins'] = c
+                
+                            with open('users.json', 'w') as o:
+                                json.dump(users, o)
+
+                            await ctx.send(embed=embed)
+                            return
+                    elif bt > 21:
+                        embed = discord.Embed(title='Blackjack')
+                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                        embed.set_footer(text='You Won')
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        await ctx.send(embed=embed)
+                        return
+                    elif bt == 21:
+                        embed = discord.Embed(title='Blackjack')
+                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                        embed.set_footer(text='Draw')
+                        j = l
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                        
+                        await ctx.send(embed=embed)
+                        return
+                elif at1 < 21:
+                    embed = discord.Embed(title='Blackjack')
+                    embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                    embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                    embed.set_footer(text='Hit or Stay')
+                    await ctx.send(embed=embed)
+                    msg = await bot.wait_for('message', check=lambda message: message.author == member)
+                    uans = (msg.content)
+                    if uans == 'Hit' or uans == 'hit':
+                        usercard4 = random.choice(list(cards.items()))
+                        a4 = int(usercard4[1])
+                        at2 = at1+a4
+                        if at2 > 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                            embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                            embed.set_footer(text='Busted you lost')
+                            await ctx.send(embed=embed)
+                            return
+                        elif at2 == 21:
+                            botcard2 = random.choice(list(cards.items()))
+                            botcard3 = random.choice(list(cards.items()))
+                            b2 = int(botcard2[1])
+                            b3 = int(botcard3[1])
+                            bt = b1+b2+b3
+                            if bt < 21:
+                                botcard4 = random.choice(list(cards.items()))                                                   
+                                b4 = int(botcard4[1])
+                                bt1 = bt+b4
+                                if bt1 < 21:
+                                    botcard5 = random.choice(list(cards.items()))
+                                    b5 = int(botcard5[1])
+                                    bt2 = bt1+b5
+                                    if bt2 < 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='You Won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                    
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt > 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='You Won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                    
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt == 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='Draw')
+                                        j = l
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                                        
+                                        await ctx.send(embed=embed)
+                                        return
+                                elif bt > 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                    embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                    embed.set_footer(text='You Won')
+                                    j = (l*2)
+                                    with open('users.json', 'r') as o:
+                                        users = json.load(o)
+                                    coins = users[f'{member.id}']['coins']
+                                    a = int(coins)
+                                    c = a+j
+                                    users[f'{member.id}']['coins'] = c
+                
+                                    with open('users.json', 'w') as o:
+                                        json.dump(users, o)
+                    
+                                    await ctx.send(embed=embed)
+                                    return
+                                elif bt == 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                    embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                    embed.set_footer(text='Draw')
+                                    j = l
+                                    with open('users.json', 'r') as o:
+                                        users = json.load(o)
+                                    coins = users[f'{member.id}']['coins']
+                                    a = int(coins)
+                                    c = a+j
+                                    users[f'{member.id}']['coins'] = c
+                
+                                    with open('users.json', 'w') as o:
+                                        json.dump(users, o)
+            
+                                    await ctx.send(embed=embed)
+                                    return
+                            elif bt > 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                embed.set_footer(text='You Won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt == 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                embed.set_footer(text='Draw')
+                                j = l
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+
+                                await ctx.send(embed=embed)
+                                return
+                        elif at2 < 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                            embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                            embed.set_footer(text='Hit or Stay')
+                            await ctx.send(embed=embed)
+                            msg = await bot.wait_for('message', check=lambda message: message.author == member)
+                            uans = (msg.content)
+                            if uans == 'Hit' or uans == 'hit':
+                                usercard5 = random.choice(list(cards.items()))
+                                a5 = int(usercard5[1])
+                                at3 = at2+a5
+                                if at3 > 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                    embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                                    embed.set_footer(text='Busted you lost')
+                                    await ctx.send(embed=embed)
+                                    return
+                                elif at3 == 21:
+                                    botcard2 = random.choice(list(cards.items()))
+                                    botcard3 = random.choice(list(cards.items()))
+                                    b2 = int(botcard2[1])
+                                    b3 = int(botcard3[1])
+                                    bt = b1+b2+b3
+                                    if bt < 21:
+                                        botcard4 = random.choice(list(cards.items()))                                                   
+                                        b4 = int(botcard4[1])
+                                        bt1 = bt+b4
+                                        if bt1 < 21:
+                                            botcard5 = random.choice(list(cards.items()))
+                                            b5 = int(botcard5[1])
+                                            bt2 = bt1+b5
+                                            if bt2 < 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='You Won')
+                                                j = (l*2)
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                    
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt > 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='You Won')
+                                                j = (l*2)
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                    
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt == 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='Draw')
+                                                j = l
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                                        
+                                                await ctx.send(embed=embed)
+                                                return
+                                        elif bt > 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                            embed.set_footer(text='You Won')
+                                            j = (l*2)
+                                            with open('users.json', 'r') as o:
+                                                users = json.load(o)
+                                            coins = users[f'{member.id}']['coins']
+                                            a = int(coins)
+                                            c = a+j
+                                            users[f'{member.id}']['coins'] = c
+                
+                                            with open('users.json', 'w') as o:
+                                                json.dump(users, o)
+                    
+                                            await ctx.send(embed=embed)
+                                            return
+                                        elif bt == 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                            embed.set_footer(text='Draw')
+                                            j = l
+                                            with open('users.json', 'r') as o:
+                                                users = json.load(o)
+                                            coins = users[f'{member.id}']['coins']
+                                            a = int(coins)
+                                            c = a+j
+                                            users[f'{member.id}']['coins'] = c
+                
+                                            with open('users.json', 'w') as o:
+                                                json.dump(users, o)
+            
+                                            await ctx.send(embed=embed)
+                                            return
+                                    elif bt > 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                        embed.set_footer(text='You Won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                    
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt == 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                        embed.set_footer(text='Draw')
+                                        j = l
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+
+                                        await ctx.send(embed=embed)
+                                        return
+                                elif at2 < 21:  
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                    embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                                    await ctx.send(embed=embed)
+                                    await asyncio.sleep(1)
+                                    if b1 > at3:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)
+                                        return
+                                    botcard2 = random.choice(list(cards.items()))
+                                    b2 = int(botcard2[1])
+                                    bt = b1+b2
+                                    if bt > at3 and bt <=21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)        
+                                        return
+                                    elif bt <= at3:
+                                        botcard3 = random.choice(list(cards.items()))
+                                        b3 = int(botcard3[1])
+                                        bt1 = bt+b3
+                                        if bt1 > at3 and bt1 <= 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                            embed.set_footer(text='You Lost')
+                                            await ctx.send(embed=embed)
+                                            return
+                                        elif bt1 <= at3:
+                                            botcard4 = random.choice(list(cards.items()))
+                                            b4 = int(botcard4[1])
+                                            bt2 = bt1+b4
+                                            if bt2 > at3 and bt2 <= 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                                embed.set_footer(text='You Lost')
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt2 <= at3:
+                                                botcard5 = random.choice(list(cards.items()))
+                                                b5 = int(botcard5[1])
+                                                bt3 = bt2+b5
+                                                if bt3 > at3 and bt3 <= 21:
+                                                    embed = discord.Embed(title='Blackjack')
+                                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                    embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                    embed.set_footer(text='You Lost')
+                                                    await ctx.send(embed=embed)
+                                                    return
+                                                elif bt3 < at3 and bt3 <=21:
+                                                    embed = discord.Embed(title='Blackjack')
+                                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                    embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                    embed.set_footer(text='You Won')
+                                                    j = (l*2)
+                                                    with open('users.json', 'r') as o:
+                                                        users = json.load(o)
+                                                    coins = users[f'{member.id}']['coins']
+                                                    a = int(coins)
+                                                    c = a+j
+                                                    users[f'{member.id}']['coins'] = c
+                    
+                                                    with open('users.json', 'w') as o:
+                                                        json.dump(users, o)
+                        
+                                                    await ctx.send(embed=embed)
+                                                    return
+                                                elif bt3 == at3 and bt3 <=21:
+                                                    embed = discord.Embed(title='Blackjack')
+                                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                    embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                    embed.set_footer(text='Draw')
+                                                    j = l
+                                                    with open('users.json', 'r') as o:
+                                                        users = json.load(o)
+                                                    coins = users[f'{member.id}']['coins']
+                                                    a = int(coins)
+                                                    c = a+j
+                                                    users[f'{member.id}']['coins'] = c
+                    
+                                                    with open('users.json', 'w') as o:
+                                                        json.dump(users, o)
+            
+                                                    await ctx.send(embed=embed)   
+                                                    return
+                                                elif bt3 > at3 and bt3 > 21:
+                                                    embed = discord.Embed(title='Blackjack')
+                                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                    embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                    embed.set_footer(text='Dealer busted you won')
+                                                    j = (l*2)
+                                                    with open('users.json', 'r') as o:
+                                                        users = json.load(o)
+                                                    coins = users[f'{member.id}']['coins']
+                                                    a = int(coins)
+                                                    c = a+j
+                                                    users[f'{member.id}']['coins'] = c
+                            
+                                                    with open('users.json', 'w') as o:
+                                                        json.dump(users, o)
+                                
+                                                    await ctx.send(embed=embed)
+                                                    return
+                                            elif bt2 > at3 and bt2 > 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                                embed.set_footer(text='Dealer busted you won')
+                                                j = (l*2)
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                            
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                                
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt2 == at3 and bt2 <= 21:
+                                                botcard5 = random.choice(list(cards.items()))
+                                                b5 = int(botcard5[1])
+                                                bt3 = bt2+b5              
+                                                if bt3 <= 21:
+                                                    embed = discord.Embed(title='Blackjack')
+                                                    embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                    embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                    embed.set_footer(text='You Lost')
+                                                    await ctx.send(embed=embed)    
+                                                    return    
+                                        elif bt1 > at3 and bt1 > 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                            embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                            embed.set_footer(text='Dealer busted you won')
+                                            j = (l*2)
+                                            with open('users.json', 'r') as o:
+                                                users = json.load(o)
+                                            coins = users[f'{member.id}']['coins']
+                                            a = int(coins)
+                                            c = a+j
+                                            users[f'{member.id}']['coins'] = c
+                            
+                                            with open('users.json', 'w') as o:
+                                                json.dump(users, o)
+                                
+                                            await ctx.send(embed=embed)
+                                            return
+                                        elif bt1 == at3 and bt1 <= 21:
+                                            botcard4 = random.choice(list(cards.items()))
+                                            b4 = int(botcard4[1])
+                                            bt2 = bt1+b4               
+                                            if bt2 <= 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                                embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                                embed.set_footer(text='You Lost')
+                                                await ctx.send(embed=embed)
+                                                return
+                                    elif bt > at3 and bt > 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                        embed.set_footer(text='Dealer busted you won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                            
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                                
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt == at3 and bt <= 21:
+                                        botcard3 = random.choice(list(cards.items()))
+                                        b3 = int(botcard3[1])
+                                        bt1 = bt+b3                
+                                        if bt1 <= 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at3}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]} {usercard5[0]}')
+                                            embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                            embed.set_footer(text='You Lost')
+                                            await ctx.send(embed=embed)        
+                                            return    
+                            elif uans == 'Stay' or uans == 'stay':
+                                if b1 > at2:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                    embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                    embed.set_footer(text='You Lost')
+                                    await ctx.send(embed=embed)
+                                    return
+                                botcard2 = random.choice(list(cards.items()))
+                                b2 = int(botcard2[1])
+                                bt = b1+b2
+                                if bt > at2 and bt <=21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                    embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                    embed.set_footer(text='You Lost')
+                                    await ctx.send(embed=embed)        
+                                    return
+                                elif bt <= at2:
+                                    botcard3 = random.choice(list(cards.items()))
+                                    b3 = int(botcard3[1])
+                                    bt1 = bt+b3
+                                    if bt1 > at2 and bt1 <= 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt1 <= at2:
+                                        botcard4 = random.choice(list(cards.items()))
+                                        b4 = int(botcard4[1])
+                                        bt2 = bt1+b4
+                                        if bt2 > at2 and bt2 <= 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                            embed.set_footer(text='You Lost')
+                                            await ctx.send(embed=embed)
+                                            return
+                                        elif bt2 <= at2:
+                                            botcard5 = random.choice(list(cards.items()))
+                                            b5 = int(botcard5[1])
+                                            bt3 = bt2+b5
+                                            if bt3 > at2 and bt3 <= 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='You Lost')
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt3 < at2 and bt3 <=21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='You Won')
+                                                j = (l*2)
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                    
+                                                await ctx.send(embed=embed)
+                                                return
+                                            elif bt3 == at2 and bt3 <=21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='Draw')
+                                                j = l
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+        
+                                                await ctx.send(embed=embed)   
+                                                return
+                                            elif bt3 > at2 and bt3 > 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='Dealer busted you won')
+                                                j = (l*2)
+                                                with open('users.json', 'r') as o:
+                                                    users = json.load(o)
+                                                coins = users[f'{member.id}']['coins']
+                                                a = int(coins)
+                                                c = a+j
+                                                users[f'{member.id}']['coins'] = c
+                        
+                                                with open('users.json', 'w') as o:
+                                                    json.dump(users, o)
+                            
+                                                await ctx.send(embed=embed)
+                                                return
+                                        elif bt2 > at2 and bt2 > 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                            embed.set_footer(text='Dealer busted you won')
+                                            j = (l*2)
+                                            with open('users.json', 'r') as o:
+                                                users = json.load(o)
+                                            coins = users[f'{member.id}']['coins']
+                                            a = int(coins)
+                                            c = a+j
+                                            users[f'{member.id}']['coins'] = c
+                        
+                                            with open('users.json', 'w') as o:
+                                                json.dump(users, o)
+                            
+                                            await ctx.send(embed=embed)
+                                            return
+                                        elif bt2 == at2 and bt2 <= 21:
+                                            botcard5 = random.choice(list(cards.items()))
+                                            b5 = int(botcard5[1])
+                                            bt3 = bt2+b5              
+                                            if bt3 <= 21:
+                                                embed = discord.Embed(title='Blackjack')
+                                                embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                                embed.set_footer(text='You Lost')
+                                                await ctx.send(embed=embed)    
+                                                return    
+                                    elif bt1 > at2 and bt1 > 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                        embed.set_footer(text='Dealer busted you won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                        
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                            
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt1 == at2 and bt1 <= 21:
+                                        botcard4 = random.choice(list(cards.items()))
+                                        b4 = int(botcard4[1])
+                                        bt2 = bt1+b4               
+                                        if bt2 <= 21:
+                                            embed = discord.Embed(title='Blackjack')
+                                            embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                            embed.set_footer(text='You Lost')
+                                            await ctx.send(embed=embed)
+                                            return
+                                elif bt > at2 and bt > 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                    embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                                    embed.set_footer(text='Dealer busted you won')
+                                    j = (l*2)
+                                    with open('users.json', 'r') as o:
+                                        users = json.load(o)
+                                    coins = users[f'{member.id}']['coins']
+                                    a = int(coins)
+                                    c = a+j
+                                    users[f'{member.id}']['coins'] = c
+                        
+                                    with open('users.json', 'w') as o:
+                                        json.dump(users, o)
+                            
+                                    await ctx.send(embed=embed)
+                                    return
+                                elif bt == at2 and bt <= 21:
+                                    botcard3 = random.choice(list(cards.items()))
+                                    b3 = int(botcard3[1])
+                                    bt1 = bt+b3                
+                                    if bt1 <= 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at2}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]} {usercard4[0]}')
+                                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)        
+                                        return    
+
+                                        
+                    elif uans == 'Stay' or uans == 'stay':
+                        if b1 > at1:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                            embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                            embed.set_footer(text='You Lost')
+                            await ctx.send(embed=embed)
+                            return
+                        botcard2 = random.choice(list(cards.items()))
+                        b2 = int(botcard2[1])
+                        bt = b1+b2
+                        if bt > at1 and bt <=21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                            embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                            embed.set_footer(text='You Lost')
+                            await ctx.send(embed=embed)        
+                            return
+                        elif bt <= at1:
+                            botcard3 = random.choice(list(cards.items()))
+                            b3 = int(botcard3[1])
+                            bt1 = bt+b3
+                            if bt1 > at1 and bt1 <= 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                embed.set_footer(text='You Lost')
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt1 <= at1:
+                                botcard4 = random.choice(list(cards.items()))
+                                b4 = int(botcard4[1])
+                                bt2 = bt1+b4
+                                if bt2 > at1 and bt2 <= 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                    embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                    embed.set_footer(text='You Lost')
+                                    await ctx.send(embed=embed)
+                                    return
+                                elif bt2 <= at1:
+                                    botcard5 = random.choice(list(cards.items()))
+                                    b5 = int(botcard5[1])
+                                    bt3 = bt2+b5
+                                    if bt3 > at1 and bt3 <= 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                        embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt3 < at1 and bt3 <=21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                        embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='You Won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                    
+                                        await ctx.send(embed=embed)
+                                        return
+                                    elif bt3 == at1 and bt3 <=21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                        embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='Draw')
+                                        j = l
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+        
+                                        await ctx.send(embed=embed)   
+                                        return
+                                    elif bt3 > at1 and bt3 > 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                        embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='Dealer busted you won')
+                                        j = (l*2)
+                                        with open('users.json', 'r') as o:
+                                            users = json.load(o)
+                                        coins = users[f'{member.id}']['coins']
+                                        a = int(coins)
+                                        c = a+j
+                                        users[f'{member.id}']['coins'] = c
+                
+                                        with open('users.json', 'w') as o:
+                                            json.dump(users, o)
+                    
+                                        await ctx.send(embed=embed)
+                                        return
+                                elif bt2 > at1 and bt2 > 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                    embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                    embed.set_footer(text='Dealer busted you won')
+                                    j = (l*2)
+                                    with open('users.json', 'r') as o:
+                                        users = json.load(o)
+                                    coins = users[f'{member.id}']['coins']
+                                    a = int(coins)
+                                    c = a+j
+                                    users[f'{member.id}']['coins'] = c
+                
+                                    with open('users.json', 'w') as o:
+                                        json.dump(users, o)
+                    
+                                    await ctx.send(embed=embed)
+                                    return
+                                elif bt2 == at1 and bt2 <= 21:
+                                    botcard5 = random.choice(list(cards.items()))
+                                    b5 = int(botcard5[1])
+                                    bt3 = bt2+b5              
+                                    if bt3 <= 21:
+                                        embed = discord.Embed(title='Blackjack')
+                                        embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                        embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                        embed.set_footer(text='You Lost')
+                                        await ctx.send(embed=embed)    
+                                        return    
+                            elif bt1 > at1 and bt1 > 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                embed.set_footer(text='Dealer busted you won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt1 == at1 and bt1 <= 21:
+                                botcard4 = random.choice(list(cards.items()))
+                                b4 = int(botcard4[1])
+                                bt2 = bt1+b4               
+                                if bt2 <= 21:
+                                    embed = discord.Embed(title='Blackjack')
+                                    embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                    embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                                    embed.set_footer(text='You Lost')
+                                    await ctx.send(embed=embed)
+                                    return
+                        elif bt > at1 and bt > 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                            embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                            embed.set_footer(text='Dealer busted you won')
+                            j = (l*2)
+                            with open('users.json', 'r') as o:
+                                users = json.load(o)
+                            coins = users[f'{member.id}']['coins']
+                            a = int(coins)
+                            c = a+j
+                            users[f'{member.id}']['coins'] = c
+                
+                            with open('users.json', 'w') as o:
+                                json.dump(users, o)
+                    
+                            await ctx.send(embed=embed)
+                            return
+                        elif bt == at1 and bt <= 21:
+                            botcard3 = random.choice(list(cards.items()))
+                            b3 = int(botcard3[1])
+                            bt1 = bt+b3                
+                            if bt1 <= 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at1}', value=f'{usercard1[0]} {usercard2[0]} {usercard3[0]}')
+                                embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                                embed.set_footer(text='You Lost')
+                                await ctx.send(embed=embed)        
+                                return    
+            elif uans == 'Stay' or uans == 'stay':
+                if b1 > at0:
+                    embed = discord.Embed(title='Blackjack')
+                    embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                    embed.add_field(name=f'Dealer: {b1}', value=f'{botcard1[0]}')
+                    embed.set_footer(text='You Lost')
+                    await ctx.send(embed=embed)
+                    return
+                botcard2 = random.choice(list(cards.items()))
+                b2 = int(botcard2[1])
+                bt = b1+b2
+                if bt > at0 and bt <=21:
+                    embed = discord.Embed(title='Blackjack')
+                    embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                    embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                    embed.set_footer(text='You Lost')
+                    await ctx.send(embed=embed)        
+                    return
+                elif bt <= at0:
+                    botcard3 = random.choice(list(cards.items()))
+                    b3 = int(botcard3[1])
+                    bt1 = bt+b3
+                    if bt1 > at0 and bt1 <= 21:
+                        embed = discord.Embed(title='Blackjack')
+                        embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                        embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                        embed.set_footer(text='You Lost')
+                        await ctx.send(embed=embed)
+                        return
+                    elif bt1 <= at0:
+                        botcard4 = random.choice(list(cards.items()))
+                        b4 = int(botcard4[1])
+                        bt2 = bt1+b4
+                        if bt2 > at0 and bt2 <= 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                            embed.set_footer(text='You Lost')
+                            await ctx.send(embed=embed)
+                            return
+                        elif bt2 <= at0:
+                            botcard5 = random.choice(list(cards.items()))
+                            b5 = int(botcard5[1])
+                            bt3 = bt2+b5
+                            if bt3 > at0 and bt3 <= 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='You Lost')
+                                await ctx.send(embed=embed)
+                            elif bt3 < at0 and bt3 <=21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='You Won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                            elif bt3 == at0 and bt3 <=21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='Draw')
+                                j = l
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+        
+                                await ctx.send(embed=embed)   
+                                return
+                            elif bt3 > at0 and bt3 > 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='Dealer busted you won')
+                                j = (l*2)
+                                with open('users.json', 'r') as o:
+                                    users = json.load(o)
+                                coins = users[f'{member.id}']['coins']
+                                a = int(coins)
+                                c = a+j
+                                users[f'{member.id}']['coins'] = c
+                
+                                with open('users.json', 'w') as o:
+                                    json.dump(users, o)
+                    
+                                await ctx.send(embed=embed)
+                                return
+                        elif bt2 > at0 and bt2 > 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                            embed.set_footer(text='Dealer busted you won')
+                            j = (l*2)
+                            with open('users.json', 'r') as o:
+                                users = json.load(o)
+                            coins = users[f'{member.id}']['coins']
+                            a = int(coins)
+                            c = a+j
+                            users[f'{member.id}']['coins'] = c
+                
+                            with open('users.json', 'w') as o:
+                                json.dump(users, o)
+                    
+                            await ctx.send(embed=embed)
+                            return
+                        elif bt2 == at0 and bt2 <= 21:
+                            botcard5 = random.choice(list(cards.items()))
+                            b5 = int(botcard5[1])
+                            bt3 = bt2+b5              
+                            if bt3 <= 21:
+                                embed = discord.Embed(title='Blackjack')
+                                embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                                embed.add_field(name=f'Dealer: {bt3}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]} {botcard5[0]}')
+                                embed.set_footer(text='You Lost')
+                                await ctx.send(embed=embed)        
+                    elif bt1 > at0 and bt1 > 21:
+                        embed = discord.Embed(title='Blackjack')
+                        embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                        embed.add_field(name=f'Dealer: {bt1}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                        embed.set_footer(text='Dealer busted you won')
+                        j = (l*2)
+                        with open('users.json', 'r') as o:
+                            users = json.load(o)
+                        coins = users[f'{member.id}']['coins']
+                        a = int(coins)
+                        c = a+j
+                        users[f'{member.id}']['coins'] = c
+                
+                        with open('users.json', 'w') as o:
+                            json.dump(users, o)
+                    
+                        await ctx.send(embed=embed)
+                        return
+                    elif bt1 == at0 and bt1 <= 21:
+                        botcard4 = random.choice(list(cards.items()))
+                        b4 = int(botcard4[1])
+                        bt2 = bt1+b4               
+                        if bt2 <= 21:
+                            embed = discord.Embed(title='Blackjack')
+                            embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                            embed.add_field(name=f'Dealer: {bt2}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]} {botcard4[0]}')
+                            embed.set_footer(text='You Lost')
+                            await ctx.send(embed=embed)
+                elif bt > at0 and bt > 21:
+                    embed = discord.Embed(title='Blackjack')
+                    embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                    embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]}')
+                    embed.set_footer(text='Dealer busted you won')
+                    j = (l*2)
+                    with open('users.json', 'r') as o:
+                        users = json.load(o)
+                    coins = users[f'{member.id}']['coins']
+                    a = int(coins)
+                    c = a+j
+                    users[f'{member.id}']['coins'] = c
+                
+                    with open('users.json', 'w') as o:
+                        json.dump(users, o)
+                    
+                    await ctx.send(embed=embed)
+                    return
+                elif bt == at0 and bt <= 21:
+                    botcard3 = random.choice(list(cards.items()))
+                    b3 = int(botcard3[1])
+                    bt1 = bt+b3                
+                    if bt1 <= 21:
+                        embed = discord.Embed(title='Blackjack')
+                        embed.add_field(name=f'User: {at0}', value=f'{usercard1[0]} {usercard2[0]}')
+                        embed.add_field(name=f'Dealer: {bt}', value=f'{botcard1[0]} {botcard2[0]} {botcard3[0]}')
+                        embed.set_footer(text='You Lost')
+                        await ctx.send(embed=embed)        
+                        return
+
+
+@bot.command()
+async def war(ctx, coin=0, *, value=None):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if l == 0:
+            await ctx.send('Put your bet\nMinimum = 1\nMaximum = 10000')
+            return
+        elif q < l:
+            await ctx.send('Not enough coins to play this game')
+            return    
+        elif l < 1:
+            await ctx.send('Minimum = 1')
+            return
+        elif l > 10000:
+            await ctx.send('Maximum = 10000')
+            return
+        elif value is None:
+            await ctx.send('Specify your card High or Low')
+            return
+        elif value == 'High' or value == 'high':
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            cards = {
+                        '<:s1:768850367299059743>' : '14', '<:s2:768850837103312956>' : '2', '<:s3:768850899945783306>' : '3', '<:s4:768850944372506634>' : '4', '<:s5:768850999716085821>' : '5', '<:s6:768851264653492255>' : '6', '<:s7:768851446183231518>' : '7', '<:s8:768851501752778752>' : '8', '<:s9:768851558246907925>' : '9', '<:s10:768851614265770027>' : '10', '<:s11:768852890164133899>' : '11', '<:s12:768853368591482920>' : '12', '<:s13:768853449676292126>' : '13',
+                        '<:c1:769137965011173407>' : '14', '<:c2:769138045060120577>' : '2', '<:c3:769138140018769931>' : '3', '<:c4:769138233425526785>' : '4', '<:c5:769138319527116801>' : '5', '<:c6:769138409284436009>' : '6', '<:c7:769139223072604160>' : '7', '<:c8:769139406170357761>' : '8', '<:c9:769139511980458014>' : '9', '<:c10:769139572524187668>' : '10', '<:c11:769139639369334785>' : '11', '<:c12:769139714094661652>' : '12', '<:c13:769139782579257364>' : '13',
+                        '<:h1:769134733854244874>' : '14', '<:h2:769134834139922472>' : '2', '<:h3:769134950216630301>' : '3', '<:h4:769135040759201792>' : '4', '<:h5:769135134653153310>' : '5', '<:h6:769135246490075136>' : '6', '<:h7:769135338961502249>' : '7', '<:h8:769135437138231306>' : '8', '<:h9:769135546642726942>' : '9', '<:h10:769135637906980875>' : '10', '<:h11:769135928815517716>' : '11', '<:h12:769136041646096394>' : '12', '<:h13:769136141865189376>' : '13',
+                        '<:d1:769136359847624714>' : '14', '<:d2:769136487895007232>' : '2', '<:d3:769136555746131968>' : '3', '<:d4:769136642572812319>' : '4', '<:d5:769136717218971658>' : '5', '<:d6:769136799213158400>' : '6', '<:d7:769136883267534848>' : '7', '<:d8:769136966981517312>' : '8', '<:d9:769137055779127297>' : '9', '<:d10:769137144878858280>' : '10', '<:d11:769137268505313320>' : '11', '<:d12:769137356518195240>' : '12', '<:d13:769137443286417428>' : '13'
+                    }
+            usercard = random.choice(list(cards.items()))
+            botcard = random.choice(list(cards.items()))
+            u = int(usercard[1])
+            b = int(botcard[1])
+            if u < b:
+                embed = discord.Embed(title='War')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='You Lost your card was lower')
+                await ctx.send(embed=embed)
+                return
+            elif u > b:
+                embed = discord.Embed(title='Blackjack')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='You won your card was higher')
+                j = (l*2)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+        
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+        
+                await ctx.send(embed=embed)
+                return
+            elif u == b:
+                embed = discord.Embed(title='Blackjack')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='Draw both cards are equal')
+                j = l
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+        
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+        
+                await ctx.send(embed=embed)
+                return
+        elif value == 'Low' or value == 'low':
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+                
+            cards = {
+                        '<:s1:768850367299059743>' : '14', '<:s2:768850837103312956>' : '2', '<:s3:768850899945783306>' : '3', '<:s4:768850944372506634>' : '4', '<:s5:768850999716085821>' : '5', '<:s6:768851264653492255>' : '6', '<:s7:768851446183231518>' : '7', '<:s8:768851501752778752>' : '8', '<:s9:768851558246907925>' : '9', '<:s10:768851614265770027>' : '10', '<:s11:768852890164133899>' : '11', '<:s12:768853368591482920>' : '12', '<:s13:768853449676292126>' : '13',
+                        '<:c1:769137965011173407>' : '14', '<:c2:769138045060120577>' : '2', '<:c3:769138140018769931>' : '3', '<:c4:769138233425526785>' : '4', '<:c5:769138319527116801>' : '5', '<:c6:769138409284436009>' : '6', '<:c7:769139223072604160>' : '7', '<:c8:769139406170357761>' : '8', '<:c9:769139511980458014>' : '9', '<:c10:769139572524187668>' : '10', '<:c11:769139639369334785>' : '11', '<:c12:769139714094661652>' : '12', '<:c13:769139782579257364>' : '13',
+                        '<:h1:769134733854244874>' : '14', '<:h2:769134834139922472>' : '2', '<:h3:769134950216630301>' : '3', '<:h4:769135040759201792>' : '4', '<:h5:769135134653153310>' : '5', '<:h6:769135246490075136>' : '6', '<:h7:769135338961502249>' : '7', '<:h8:769135437138231306>' : '8', '<:h9:769135546642726942>' : '9', '<:h10:769135637906980875>' : '10', '<:h11:769135928815517716>' : '11', '<:h12:769136041646096394>' : '12', '<:h13:769136141865189376>' : '13',
+                        '<:d1:769136359847624714>' : '14', '<:d2:769136487895007232>' : '2', '<:d3:769136555746131968>' : '3', '<:d4:769136642572812319>' : '4', '<:d5:769136717218971658>' : '5', '<:d6:769136799213158400>' : '6', '<:d7:769136883267534848>' : '7', '<:d8:769136966981517312>' : '8', '<:d9:769137055779127297>' : '9', '<:d10:769137144878858280>' : '10', '<:d11:769137268505313320>' : '11', '<:d12:769137356518195240>' : '12', '<:d13:769137443286417428>' : '13'
+                    }
+            usercard = random.choice(list(cards.items()))
+            botcard = random.choice(list(cards.items()))
+            u = int(usercard[1])
+            b = int(botcard[1])
+            if u > b:
+                embed = discord.Embed(title='War')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='You Lost your card was higher')
+                await ctx.send(embed=embed)
+                return
+            elif u < b:
+                embed = discord.Embed(title='Blackjack')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='You won your card was lower')
+                j = (l*2)
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+        
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+        
+                await ctx.send(embed=embed)
+                return
+            elif u == b:
+                embed = discord.Embed(title='Blackjack')
+                embed.add_field(name=f'User: {u}', value=f'{usercard[0]}')
+                embed.add_field(name=f'Dealer: {b}', value=f'{botcard[0]}')
+                embed.set_footer(text='Draw both cards are equal')
+                j = l
+                with open('users.json', 'r') as o:
+                    users = json.load(o)
+                coins = users[f'{member.id}']['coins']
+                a = int(coins)
+                c = a+j
+                users[f'{member.id}']['coins'] = c
+        
+                with open('users.json', 'w') as o:
+                    json.dump(users, o)
+        
+                await ctx.send(embed=embed)
+                return
+
+                
+                        
+
+
+bot.loop.create_task(time_check())
+         
 bot.run(token)
         

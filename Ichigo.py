@@ -28,7 +28,7 @@ kick = ""
 mute = ""
 unmute = ""
 ban = ""
-unban = ""
+unban = "" 
 
 
 times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
@@ -37,6 +37,30 @@ send_time = random.choice(times)
 
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
+    mang = ["manga-release"]
+    if str(message.channel) in mang:
+        embed_content_in_dict = message.embeds[0].to_dict()
+        b = embed_content_in_dict['footer']['text']
+        c = b.split()[0]
+        if c != 'DISC':
+            await message.delete()
+        elif c == 'DISC':
+            return
+        await bot.process_commands(message)
+    ani = ["anime-release"]
+    if str(message.channel) in ani:
+        embed_content_in_dict = message.embeds[0].to_dict()
+        b = embed_content_in_dict['footer']['text']
+        c = b.split()[0]
+        if c != 'Episode':
+            if c == 'Today':
+                return
+            else:
+                await message.delete()
+                return
+        elif c == 'Episode' or c == 'Today':
+            return
+        await bot.process_commands(message)
     c = ["🤖┃machinery"]
     with open('bad-words.txt', 'r') as file:
         bad_words = file.read().split(', ')
@@ -207,7 +231,7 @@ async def on_message_edit(before, after):
     channel = guild.get_channel(767027322099859477)
     member = before.author
     result = '{} edited *{}* to **{}** in {}'.format(before.author.mention, before.content, after.content, before.channel)
-    if member != bot.user:
+    if before.author.bot == False:
         embed = discord.Embed(title='Edited', description=f'{result}')
         if member.is_avatar_animated():
             avt = f"{member.avatar_url_as(format='gif')}"
@@ -217,8 +241,6 @@ async def on_message_edit(before, after):
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
         return
-    else:
-        return
         
 
 @bot.event
@@ -227,7 +249,7 @@ async def on_message_delete(message):
     channel = guild.get_channel(767027322099859477)
     member = message.author
     result = '{} deleted **{}** in {}'.format(message.author.mention, message.content, message.channel)
-    if member != bot.user and "." not in message.content:
+    if message.author.bot == False and "." not in message.content:
         embed = discord.Embed(title='Deleted', description=f'{result}')
         if member.is_avatar_animated():
             avt = f"{member.avatar_url_as(format='gif')}"
@@ -245,7 +267,7 @@ async def on_message_delete(message):
 async def on_voice_state_update(member, before, after):
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(768218843469316156)
-    if not before.channel:
+    if not before.channel and member.nick != 'Jockie':
         embed = discord.Embed(title='Connected', description=f'{member.mention} **connected to** {after.channel.name}')
         if member.is_avatar_animated():
             avt = f"{member.avatar_url_as(format='gif')}"
@@ -254,7 +276,7 @@ async def on_voice_state_update(member, before, after):
         embed.set_thumbnail(url=f'{avt}')
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
-    if before.channel and not after.channel:
+    if before.channel and not after.channel and member.nick != 'Jockie':
         embed = discord.Embed(title='Left', description=f'{member.mention} **left** {before.channel.name}')
         if member.is_avatar_animated():
             avt = f"{member.avatar_url_as(format='gif')}"
@@ -263,7 +285,7 @@ async def on_voice_state_update(member, before, after):
         embed.set_thumbnail(url=f'{avt}')
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
-    if before.channel and after.channel:
+    if before.channel and after.channel and member.nick != 'Jockie':
         if before.channel.id != after.channel.id:
             embed = discord.Embed(title='Switched', description=f'{member.mention} **switched from** {before.channel.name} **to** {after.channel.name}')
             if member.is_avatar_animated():
@@ -301,21 +323,19 @@ async def on_voice_state_update(member, before, after):
                 embed.set_thumbnail(url=f'{avt}')
                 embed.set_footer(text=f'{member.id}')
                 await channel.send(embed=embed)
-    if after.channel is not None:
+    if after.channel is not None and member.nick != 'Jockie':
         x = {f'{member.id} : '}
         if after.channel.name == 'Join To Make New Room':
             cat = guild.get_channel(768363165817110558)
             new = await guild.create_voice_channel(name=f'{member.name}\'s Room', category=cat)
             await member.move_to(new)
-    if before.channel is not None:
+    if before.channel is not None and member.nick != 'Jockie':
         category = 768363165817110558
         if before.channel.category.id == category:
-            print('gg')
             if before.channel.name == "Join To Make New Room": 
                 return
             else:
                 if len(before.channel.members) == 0:
-                    print('ggg')
                     await before.channel.delete()
          
                 
@@ -374,7 +394,8 @@ async def leaderboard(ctx):
             if number+1 > 2:
                 break 
         embed = discord.Embed(title='Rankings', description=f'{message}')
-        channel = guild.get_channel(768031362664890378)
+        embed.set_footer(text='gae | you')
+        channel = guild.get_channel(769319830461349978)
         await ctx.message.delete()
         await channel.send(embed=embed)
         return

@@ -15,6 +15,7 @@ from mal import Manga
 from mal import MangaSearch
 import kitsu
 from discord import File
+import praw
 
 
 bot = commands.Bot(command_prefix=".")
@@ -37,30 +38,6 @@ send_time = random.choice(times)
 
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
-    mang = ["manga-release"]
-    if str(message.channel) in mang:
-        embed_content_in_dict = message.embeds[0].to_dict()
-        b = embed_content_in_dict['footer']['text']
-        c = b.split()[0]
-        if c != 'DISC':
-            await message.delete()
-        elif c == 'DISC':
-            return
-        await bot.process_commands(message)
-    ani = ["anime-release"]
-    if str(message.channel) in ani:
-        embed_content_in_dict = message.embeds[0].to_dict()
-        b = embed_content_in_dict['footer']['text']
-        c = b.split()[0]
-        if c != 'Episode':
-            if c == 'Today':
-                return
-            else:
-                await message.delete()
-                return
-        elif c == 'Episode' or c == 'Today':
-            return
-        await bot.process_commands(message)
     c = ["🤖┃machinery"]
     with open('bad-words.txt', 'r') as file:
         bad_words = file.read().split(', ')
@@ -4171,9 +4148,6 @@ async def war(ctx, coin=0, *, value=None):
                 return
 
                 
-                        
-
-
 bot.loop.create_task(time_check())
          
 bot.run(token)

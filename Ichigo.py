@@ -15,6 +15,7 @@ from mal import Manga
 from mal import MangaSearch
 import kitsu
 from discord import File
+import praw
 
 
 bot = commands.Bot(command_prefix=".")
@@ -356,6 +357,7 @@ async def mods(ctx, member: discord.Member = None):
 
 
 @bot.command(aliases=['ranking'])
+@commands.has_role("Inn Keeper")
 async def leaderboard(ctx):
     guild = bot.get_guild(661211931558019072)
     channels = ['👑┃ranking-wall']
@@ -1781,7 +1783,7 @@ async def animeost_error(ctx, error):
 @bot.command()
 async def anime(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["👺┃anime"]
+    channels = ["👺┃anime", "👍┃anime-manga-recommendations"]
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
@@ -1842,8 +1844,12 @@ async def anime(ctx, *, query=None):
         await message.remove_reaction(u"\u27A1", user)         
         await message.remove_reaction(u"\u274C", user)
         await asyncio.sleep(60)
-        await message.delete()
-        return
+        chan = ["👺┃anime"]
+        if str(ctx.channel) in chan:
+            await message.delete()
+        elif str(ctx.channel) == "👍┃anime-manga-recommendations":
+            return
+        
         
 
 
@@ -1889,7 +1895,7 @@ async def manga_error(ctx, error):
 @bot.command()
 async def manga(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["📖┃manga"]
+    channels = ["📖┃manga", "👍┃anime-manga-recommendations"]
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
@@ -1944,8 +1950,13 @@ async def manga(ctx, *, query=None):
         await message.remove_reaction(u"\u27A1", user)
         await message.remove_reaction(u"\u274C", user)      
         await asyncio.sleep(60)
-        await message.delete()
-        
+        chan = ["📖┃manga"]
+        if str(ctx.channel) in chan:
+            await message.delete()
+        elif str(ctx.channel) == "👍┃anime-manga-recommendations":
+            return
+
+            
 
                                           #Games & Fun
 

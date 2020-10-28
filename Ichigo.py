@@ -15,7 +15,6 @@ from mal import Manga
 from mal import MangaSearch
 import kitsu
 from discord import File
-import praw
 
 
 bot = commands.Bot(command_prefix=".")

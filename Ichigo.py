@@ -15,6 +15,10 @@ from mal import Manga
 from mal import MangaSearch
 import kitsu
 from discord import File
+import imdb
+from imdb import IMDb, IMDbError
+import re
+
 
 
 bot = commands.Bot(command_prefix=".")
@@ -326,7 +330,8 @@ async def mods(ctx, member: discord.Member = None):
     channels = ["🏛┃council"]
     if str(ctx.channel) in channels:
         if member is None:
-            await ctx.send('Member Not Found')
+            embed = discord.Embed(title='Usage', description='.mods @name or .mods userid')
+            await ctx.send(embed=embed)
             return
         else:
             with open('users.json', 'r') as i:
@@ -381,14 +386,19 @@ async def leaderboard(ctx):
 
 @bot.command()
 @commands.has_role("Inn Server")
-async def move(ctx, *, channel : discord.VoiceChannel):
-    await ctx.message.delete()
-    guild = bot.get_guild(661211931558019072)
-    author = ctx.message.author
-    id1 = ctx.author.voice.channel
-    for members in id1.members:
-        await members.move_to(channel)
-    await ctx.send('Done')
+async def move(ctx, *, channel : discord.VoiceChannel = None):
+    if channel is None:
+        embed = discord.Embed(title='Usage', description='you must be in the same vc and then use .move newvcid or .move newvcname')
+        await ctx.send(embed=embed)
+        return
+    else:
+        await ctx.message.delete()
+        guild = bot.get_guild(661211931558019072)
+        author = ctx.message.author
+        id1 = ctx.author.voice.channel
+        for members in id1.members:
+            await members.move_to(channel)
+        await ctx.send('Done')
 
 
 @bot.command()
@@ -433,8 +443,9 @@ async def datafile(ctx, *, name=None):
 @commands.has_role("Inn Server")
 async def addav(ctx, member: discord.Member = None, *,  bg=None):
     if bg is None:
-       await ctx.send("Url is must")
-       return
+        embed = discord.Embed(title='Usage', description='.addav @user urlofav\nurl must have .jpg or .png or .gif in the extension')
+        await ctx.send(embed=embed)
+        return
     elif ".png" in bg:
         if member is None:
             await ctx.message.author
@@ -467,12 +478,13 @@ async def addbg(ctx, users, member, bg):
         await ctx.send("New avatar added")
 
 
-@bot.command()
+@bot.command(aliases=['rename'])
 @commands.has_role("Inn Server")
 async def nick(ctx, member: discord.Member = None, *, name=None):
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.rename @user newname')
+        await ctx.send(embed=embed)
         return
     elif name is None:
         await ctx.message.delete()
@@ -537,7 +549,8 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.w/.warn @user reason')
+        await ctx.send(embed=embed)
         return
     elif member.bot:
         await ctx.message.delete()
@@ -594,7 +607,8 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.k/.kick @user reason')
+        await ctx.send(embed=embed)
         return
     elif member.bot:
         await ctx.message.delete()
@@ -651,7 +665,8 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.b/.ban @user reason')
+        await ctx.send(embed=embed)
         return
     elif member.bot:
         await ctx.message.delete()
@@ -700,7 +715,8 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
 async def serverban(ctx, id: int = None, *, reason=None):
     if id is None:
         await ctx.message.delete()
-        await ctx.send("ID Required")
+        embed = discord.Embed(title='Usage', description='.sban/serverban userid reason')
+        await ctx.send(embed=embed)
         return
     elif id == "652067253080031233":
         await ctx.message.delete()
@@ -749,7 +765,8 @@ async def serverban(ctx, id: int = None, *, reason=None):
 async def unban(ctx, id: int = None, *, reason=None):
     if id is None:
         await ctx.message.delete()
-        await ctx.send("ID Required")
+        embed = discord.Embed(title='Usage', description='.ub/.unban userid reason')
+        await ctx.send(embed=embed)
         return
     elif id == "652067253080031233":
         await ctx.message.delete()
@@ -788,7 +805,8 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.m/.mute @user reason')
+        await ctx.send(embed=embed)
         return
     elif member.bot:
         await ctx.message.delete()
@@ -847,7 +865,8 @@ async def unmute(ctx, member: discord.Member = None, *, reason=None):
     guild = bot.get_guild(661211931558019072)
     if member is None:
         await ctx.message.delete()
-        await ctx.send("Member Not Found")
+        embed = discord.Embed(title='Usage', description='.um/.unmute @user reason')
+        await ctx.send(embed=embed)
         return
     elif member.bot:
         await ctx.message.delete()
@@ -1656,7 +1675,7 @@ async def slap_error(ctx, error):
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def manime(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["👺┃anime"]
+    channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if anim is None:
             await ctx.send('Anime not found')
@@ -1707,7 +1726,7 @@ async def anime_error(ctx, error):
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def manimeid(ctx, *, anim=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["👺┃anime"]
+    channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if anim is None:
             await ctx.send('Use anime mal id like 1 for Cowboy Bebop')
@@ -1759,7 +1778,7 @@ async def animeid_error(ctx, error):
 async def manimeost(ctx, *, anim=None):
     member = ctx.message.author
     guild = bot.get_guild(661211931558019072)
-    channels = ["👺┃anime"]
+    channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if anim is None:
             await ctx.send('Anime not found')
@@ -1782,7 +1801,7 @@ async def animeost_error(ctx, error):
 @bot.command()
 async def anime(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["👺┃anime", "👍┃anime-manga-recommendations"]
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
@@ -1843,7 +1862,7 @@ async def anime(ctx, *, query=None):
         await message.remove_reaction(u"\u27A1", user)         
         await message.remove_reaction(u"\u274C", user)
         await asyncio.sleep(60)
-        chan = ["👺┃anime"]
+        chan = ["🏮┃anime-manga-chat"]
         if str(ctx.channel) in chan:
             await message.delete()
         elif str(ctx.channel) == "👍┃anime-manga-recommendations":
@@ -1857,7 +1876,7 @@ async def anime(ctx, *, query=None):
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
 async def mmanga(ctx, *, manga=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["📖┃manga"]
+    channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if manga is None:
             await ctx.send('Manga not found')
@@ -1894,7 +1913,7 @@ async def manga_error(ctx, error):
 @bot.command()
 async def manga(ctx, *, query=None):
     guild = bot.get_guild(661211931558019072)
-    channels = ["📖┃manga", "👍┃anime-manga-recommendations"]
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
@@ -1949,11 +1968,543 @@ async def manga(ctx, *, query=None):
         await message.remove_reaction(u"\u27A1", user)
         await message.remove_reaction(u"\u274C", user)      
         await asyncio.sleep(60)
-        chan = ["📖┃manga"]
+        chan = ["🏮┃anime-manga-chat"]
         if str(ctx.channel) in chan:
             await message.delete()
         elif str(ctx.channel) == "👍┃anime-manga-recommendations":
             return
+
+
+@bot.command()
+async def movie(ctx, *, name=None):
+    channels = ["📽┃series-movie-chat"]
+    if str(ctx.channel) in channels:
+        try:
+            if name is None:
+                await ctx.send(".movie name")
+            elif name is not None:
+                ia = imdb.IMDb()
+                a = str(name)
+                movies = ia.search_movie(a)
+                movieid1 = movies[0].movieID
+                movie1 = ia.get_movie(movieid1)
+                a0 = movie1.data['plot']
+                a00 = str(a0)
+                synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                cover1 = movie1.data['cover url']
+                a10 = movie1.data['genres']
+                a1 = str(a10)
+                genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                a20 = movie1.data['runtimes']
+                a2 = str(a20)
+                runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                aired1 = movie1.data['original air date']
+                title1 = movie1.data['original title']
+                rating1 = movie1.data['rating'] 
+                if cover1 is None:
+                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                elif cover1 is not None:
+                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                    embed.set_thumbnail(url=cover1)
+                msg = await ctx.send(embed=embed)
+                await msg.add_reaction(u"\u27A1")
+                await msg.add_reaction(u"\u274C")
+                emote = [u"\u27A1", u"\u274C"]
+                try:
+                    def check(reaction, user):
+                        return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                    if str(reaction) == u"\u27A1":
+                        await msg.remove_reaction(u"\u27A1", user)
+                        ia = imdb.IMDb()
+                        movies = ia.search_movie(a)
+                        movieid1 = movies[1].movieID
+                        movie1 = ia.get_movie(movieid1)
+                        a0 = movie1.data['plot']
+                        a00 = str(a0)
+                        synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                        cover1 = movie1.data['cover url']
+                        a10 = movie1.data['genres']
+                        a1 = str(a10)
+                        genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                        a20 = movie1.data['runtimes']
+                        a2 = str(a20)
+                        runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                        aired1 = movie1.data['original air date']
+                        title1 = movie1.data['original title']
+                        rating1 = movie1.data['rating'] 
+                        if cover1 is None:
+                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                        elif cover1 is not None:
+                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                            embed.set_thumbnail(url=cover1)
+                        await msg.edit(embed=embed)
+                        await msg.add_reaction(u"\u27A1")
+                        await msg.add_reaction(u"\u274C")
+                        emote = [u"\u27A1", u"\u274C"]
+                        try:
+                            def check(reaction, user):
+                                return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                            if str(reaction) == u"\u27A1":
+                                await msg.remove_reaction(u"\u27A1", user)
+                                ia = imdb.IMDb()
+                                movies = ia.search_movie(a)
+                                movieid1 = movies[2].movieID
+                                movie1 = ia.get_movie(movieid1)
+                                a0 = movie1.data['plot']
+                                a00 = str(a0)
+                                synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                cover1 = movie1.data['cover url']
+                                a10 = movie1.data['genres']
+                                a1 = str(a10)
+                                genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                a20 = movie1.data['runtimes']
+                                a2 = str(a20)
+                                runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                aired1 = movie1.data['original air date']
+                                title1 = movie1.data['original title']
+                                rating1 = movie1.data['rating'] 
+                                if cover1 is None:
+                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                elif cover1 is not None:
+                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                    embed.set_thumbnail(url=cover1)
+                                await msg.edit(embed=embed)
+                                await msg.add_reaction(u"\u27A1")
+                                await msg.add_reaction(u"\u274C")
+                                emote = [u"\u27A1", u"\u274C"]
+                                try:
+                                    def check(reaction, user):
+                                        return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                    if str(reaction) == u"\u27A1":
+                                        await msg.remove_reaction(u"\u27A1", user)
+                                        ia = imdb.IMDb()
+                                        movies = ia.search_movie(a)
+                                        movieid1 = movies[3].movieID
+                                        movie1 = ia.get_movie(movieid1)
+                                        a0 = movie1.data['plot']
+                                        a00 = str(a0)
+                                        synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                        cover1 = movie1.data['cover url']
+                                        a10 = movie1.data['genres']
+                                        a1 = str(a10)
+                                        genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                        a20 = movie1.data['runtimes']
+                                        a2 = str(a20)
+                                        runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                        aired1 = movie1.data['original air date']
+                                        title1 = movie1.data['original title']
+                                        rating1 = movie1.data['rating'] 
+                                        if cover1 is None:
+                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                        elif cover1 is not None:
+                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                            embed.set_thumbnail(url=cover1)
+                                        await msg.edit(embed=embed)
+                                        await msg.add_reaction(u"\u27A1")
+                                        await msg.add_reaction(u"\u274C")
+                                        emote = [u"\u27A1", u"\u274C"]
+                                        try:
+                                            def check(reaction, user):
+                                                return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                            if str(reaction) == u"\u27A1":
+                                                await msg.remove_reaction(u"\u27A1", user)
+                                                ia = imdb.IMDb()
+                                                movies = ia.search_movie(a)
+                                                movieid1 = movies[4].movieID
+                                                movie1 = ia.get_movie(movieid1)
+                                                a0 = movie1.data['plot']
+                                                a00 = str(a0)
+                                                synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                cover1 = movie1.data['cover url']
+                                                a10 = movie1.data['genres']
+                                                a1 = str(a10)
+                                                genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                a20 = movie1.data['runtimes']
+                                                a2 = str(a20)
+                                                runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                aired1 = movie1.data['original air date']
+                                                title1 = movie1.data['original title']
+                                                rating1 = movie1.data['rating'] 
+                                                if cover1 is None:
+                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                elif cover1 is not None:
+                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                    embed.set_thumbnail(url=cover1)
+                                                await msg.edit(embed=embed)
+                                                await msg.add_reaction(u"\u27A1")
+                                                await msg.add_reaction(u"\u274C")
+                                                emote = [u"\u27A1", u"\u274C"]
+                                                try:
+                                                    def check(reaction, user):
+                                                        return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                                    if str(reaction) == u"\u27A1":
+                                                        await msg.remove_reaction(u"\u27A1", user)
+                                                        ia = imdb.IMDb()
+                                                        movies = ia.search_movie(a)
+                                                        movieid1 = movies[5].movieID
+                                                        movie1 = ia.get_movie(movieid1)
+                                                        a0 = movie1.data['plot']
+                                                        a00 = str(a0)
+                                                        synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                        cover1 = movie1.data['cover url']
+                                                        a10 = movie1.data['genres']
+                                                        a1 = str(a10)
+                                                        genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                        a20 = movie1.data['runtimes']
+                                                        a2 = str(a20)
+                                                        runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                        aired1 = movie1.data['original air date']
+                                                        title1 = movie1.data['original title']
+                                                        rating1 = movie1.data['rating'] 
+                                                        if cover1 is None:
+                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                        elif cover1 is not None:
+                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                            embed.set_thumbnail(url=cover1)
+                                                        await msg.edit(embed=embed)
+                                                        await msg.add_reaction(u"\u27A1")
+                                                        await msg.add_reaction(u"\u274C")
+                                                        emote = [u"\u27A1", u"\u274C"]
+                                                        try:
+                                                            def check(reaction, user):
+                                                                return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                                            if str(reaction) == u"\u27A1":
+                                                                await msg.remove_reaction(u"\u27A1", user)
+                                                                ia = imdb.IMDb()
+                                                                movies = ia.search_movie(a)
+                                                                movieid1 = movies[6].movieID
+                                                                movie1 = ia.get_movie(movieid1)
+                                                                a0 = movie1.data['plot']
+                                                                a00 = str(a0)
+                                                                synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                                cover1 = movie1.data['cover url']
+                                                                a10 = movie1.data['genres']
+                                                                a1 = str(a10)
+                                                                genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                                a20 = movie1.data['runtimes']
+                                                                a2 = str(a20)
+                                                                runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                                aired1 = movie1.data['original air date']
+                                                                title1 = movie1.data['original title']
+                                                                rating1 = movie1.data['rating'] 
+                                                                if cover1 is None:
+                                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                elif cover1 is not None:
+                                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                    embed.set_thumbnail(url=cover1)
+                                                                await msg.edit(embed=embed)
+                                                                await msg.add_reaction(u"\u27A1")
+                                                                await msg.add_reaction(u"\u274C")
+                                                                emote = [u"\u27A1", u"\u274C"]
+                                                                try:
+                                                                    def check(reaction, user):
+                                                                        return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                                                    if str(reaction) == u"\u27A1":
+                                                                        await msg.remove_reaction(u"\u27A1", user)
+                                                                        ia = imdb.IMDb()
+                                                                        movies = ia.search_movie(a)
+                                                                        movieid1 = movies[7].movieID
+                                                                        movie1 = ia.get_movie(movieid1)
+                                                                        a0 = movie1.data['plot']
+                                                                        a00 = str(a0)
+                                                                        synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                                        cover1 = movie1.data['cover url']
+                                                                        a10 = movie1.data['genres']
+                                                                        a1 = str(a10)
+                                                                        genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                                        a20 = movie1.data['runtimes']
+                                                                        a2 = str(a20)
+                                                                        runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                                        aired1 = movie1.data['original air date']
+                                                                        title1 = movie1.data['original title']
+                                                                        rating1 = movie1.data['rating'] 
+                                                                        if cover1 is None:
+                                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                        elif cover1 is not None:
+                                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                            embed.set_thumbnail(url=cover1)
+                                                                        await msg.edit(embed=embed)
+                                                                        await msg.add_reaction(u"\u27A1")
+                                                                        await msg.add_reaction(u"\u274C")
+                                                                        emote = [u"\u27A1", u"\u274C"]
+                                                                        try:
+                                                                            def check(reaction, user):
+                                                                                return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                                                            if str(reaction) == u"\u27A1":
+                                                                                await msg.remove_reaction(u"\u27A1", user)
+                                                                                ia = imdb.IMDb()
+                                                                                movies = ia.search_movie(a)
+                                                                                movieid1 = movies[8].movieID
+                                                                                movie1 = ia.get_movie(movieid1)
+                                                                                a0 = movie1.data['plot']
+                                                                                a00 = str(a0)
+                                                                                synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                                                cover1 = movie1.data['cover url']
+                                                                                a10 = movie1.data['genres']
+                                                                                a1 = str(a10)
+                                                                                genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                                                a20 = movie1.data['runtimes']
+                                                                                a2 = str(a20)
+                                                                                runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                                                aired1 = movie1.data['original air date']
+                                                                                title1 = movie1.data['original title']
+                                                                                rating1 = movie1.data['rating'] 
+                                                                                if cover1 is None:
+                                                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                                elif cover1 is not None:
+                                                                                    embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                    embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                    embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                                    embed.set_thumbnail(url=cover1)
+                                                                                await msg.edit(embed=embed)
+                                                                                await msg.add_reaction(u"\u27A1")
+                                                                                await msg.add_reaction(u"\u274C")
+                                                                                emote = [u"\u27A1", u"\u274C"]
+                                                                                try:
+                                                                                    def check(reaction, user):
+                                                                                        return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                                                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                                                                                    if str(reaction) == u"\u27A1":
+                                                                                        await msg.remove_reaction(u"\u27A1", user)
+                                                                                        ia = imdb.IMDb()
+                                                                                        movies = ia.search_movie(a)
+                                                                                        movieid1 = movies[9].movieID
+                                                                                        movie1 = ia.get_movie(movieid1)
+                                                                                        a0 = movie1.data['plot']
+                                                                                        a00 = str(a0)
+                                                                                        synopsis1 = re.sub("[^a-zA-Z0-9:.']+", ' ', a00)
+                                                                                        cover1 = movie1.data['cover url']
+                                                                                        a10 = movie1.data['genres']
+                                                                                        a1 = str(a10)
+                                                                                        genres1 =(re.sub(r"\W+|&nbsp", " ", a1))
+                                                                                        a20 = movie1.data['runtimes']
+                                                                                        a2 = str(a20)
+                                                                                        runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
+                                                                                        aired1 = movie1.data['original air date']
+                                                                                        title1 = movie1.data['original title']
+                                                                                        rating1 = movie1.data['rating'] 
+                                                                                        if cover1 is None:
+                                                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                                        elif cover1 is not None:
+                                                                                            embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                            embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
+                                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                            embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
+                                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                                            embed.set_thumbnail(url=cover1)
+                                                                                        await msg.edit(embed=embed)
+                                                                                        await msg.add_reaction(u"\u274C")
+                                                                                        emote = [u"\u274C"]
+                                                                                        try:
+                                                                                            def check(reaction, user):
+                                                                                                return (reaction.message.id == msg.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                                                                                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)  
+                                                                                            if str(reaction) == u"\u274C":
+                                                                                                await msg.delete()
+                                                                                                return
+                                                                                        except asyncio.TimeoutError:
+                                                                                            user = bot.user
+                                                                                            await msg.remove_reaction(u"\u27A1", user)
+                                                                                            await msg.remove_reaction(u"\u274C", user)
+                                                                                            await asyncio.sleep(60)
+                                                                                            await msg.delete()
+                                                                                            return
+                                                                                    elif str(reaction) == u"\u274C":
+                                                                                        await msg.delete()
+                                                                                        return
+                                                                                except asyncio.TimeoutError:
+                                                                                    user = bot.user
+                                                                                    await msg.remove_reaction(u"\u27A1", user)
+                                                                                    await msg.remove_reaction(u"\u274C", user)
+                                                                                    await asyncio.sleep(60)
+                                                                                    await msg.delete()
+                                                                                    return                                                                                
+                                                                            elif str(reaction) == u"\u274C":
+                                                                                await msg.delete()
+                                                                                return
+                                                                        except asyncio.TimeoutError:
+                                                                            user = bot.user
+                                                                            await msg.remove_reaction(u"\u27A1", user)
+                                                                            await msg.remove_reaction(u"\u274C", user)
+                                                                            await asyncio.sleep(60)
+                                                                            await msg.delete()
+                                                                            return
+                                                                    elif str(reaction) == u"\u274C":
+                                                                        await msg.delete()
+                                                                        return
+                                                                except asyncio.TimeoutError:
+                                                                    user = bot.user
+                                                                    await msg.remove_reaction(u"\u27A1", user)
+                                                                    await msg.remove_reaction(u"\u274C", user)
+                                                                    await asyncio.sleep(60)
+                                                                    await msg.delete()
+                                                                    return                                                                
+                                                            elif str(reaction) == u"\u274C":
+                                                                await msg.delete()
+                                                                return
+                                                        except asyncio.TimeoutError:
+                                                            user = bot.user
+                                                            await msg.remove_reaction(u"\u27A1", user)
+                                                            await msg.remove_reaction(u"\u274C", user)
+                                                            await asyncio.sleep(60)
+                                                            await msg.delete()
+                                                            return
+                                                    elif str(reaction) == u"\u274C":
+                                                        await msg.delete()
+                                                        return
+                                                except asyncio.TimeoutError:
+                                                    user = bot.user
+                                                    await msg.remove_reaction(u"\u27A1", user)
+                                                    await msg.remove_reaction(u"\u274C", user)
+                                                    await asyncio.sleep(60)
+                                                    await msg.delete()
+                                                    return                                                
+                                            elif str(reaction) == u"\u274C":
+                                                await msg.delete()
+                                                return
+                                        except asyncio.TimeoutError:
+                                            user = bot.user
+                                            await msg.remove_reaction(u"\u27A1", user)
+                                            await msg.remove_reaction(u"\u274C", user)
+                                            await asyncio.sleep(60)
+                                            await msg.delete()
+                                            return
+                                    elif str(reaction) == u"\u274C":
+                                        await msg.delete()
+                                        return
+                                except asyncio.TimeoutError:
+                                    user = bot.user
+                                    await msg.remove_reaction(u"\u27A1", user)
+                                    await msg.remove_reaction(u"\u274C", user)
+                                    await asyncio.sleep(60)
+                                    await msg.delete()
+                                    return
+                            elif str(reaction) == u"\u274C":
+                                await msg1.delete()
+                                return
+                        except asyncio.TimeoutError:
+                            user = bot.user
+                            await msg.remove_reaction(u"\u27A1", user)
+                            await msg.remove_reaction(u"\u274C", user)
+                            await asyncio.sleep(60)
+                            await msg.delete()
+                            return
+                    elif str(reaction) == u"\u274C":
+                        await msg.delete()
+                        return
+                except asyncio.TimeoutError:
+                    user = bot.user
+                    await msg.remove_reaction(u"\u27A1", user)
+                    await msg.remove_reaction(u"\u274C", user)
+                    return
+            await msg.remove_reaction(u"\u27A1", user)
+            await msg.remove_reaction(u"\u274C", user)      
+            await asyncio.sleep(60)
+            await msg.delete()
+        except (IMDbError, KeyError):
+            ctx.send('Page Not Found')    
 
             
 

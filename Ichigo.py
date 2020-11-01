@@ -1983,6 +1983,7 @@ async def movie(ctx, *, name=None):
             if name is None:
                 await ctx.send(".movie name")
             elif name is not None:
+                msg = await ctx.send(' ')
                 ia = imdb.IMDb()
                 a = str(name)
                 movies = ia.search_movie(a)
@@ -2016,7 +2017,7 @@ async def movie(ctx, *, name=None):
                     embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                     embed.set_thumbnail(url=cover1)
-                msg = await ctx.send(embed=embed)
+                await msg.edit(embed=embed)
                 await msg.add_reaction(u"\u27A1")
                 await msg.add_reaction(u"\u274C")
                 emote = [u"\u27A1", u"\u274C"]
@@ -2504,8 +2505,8 @@ async def movie(ctx, *, name=None):
             await asyncio.sleep(60)
             await msg.delete()
         except (IMDbError, KeyError):
-            ctx.send('Page Not Found')    
-
+           await ctx.send('Page Not Found')
+           await msg.delete()
             
 
                                           #Games & Fun

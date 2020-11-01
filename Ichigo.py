@@ -1983,7 +1983,7 @@ async def movie(ctx, *, name=None):
             if name is None:
                 await ctx.send(".movie name")
             elif name is not None:
-                msg = await ctx.send(' ')
+                msg = await ctx.send('‎‎')
                 ia = imdb.IMDb()
                 a = str(name)
                 movies = ia.search_movie(a)

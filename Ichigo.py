@@ -1842,15 +1842,15 @@ async def anime(ctx, *, query=None):
             if streaming_links:
                 for link in streaming_links:
                     if "http://www.hulu.com/" in link.url:
-                        link1 = f'([Hulu]{link.url})')
+                        link1 = f'([Hulu]({link.url})'
                     elif "http://www.crunchyroll.com/" in link.url:
-                        link2 = f'[Crunchyroll]({link.url})')
+                        link2 = f'[Crunchyroll]({link.url})'
                     elif "https://www.netflix.com/" in link.url:
-                        link3 = f'[Netflix]({link.url})')
+                        link3 = f'[Netflix]({link.url})'
                     elif "https://vrv.co/" in link.url:
-                        link4 = f'[VRV]({link.url})')
+                        link4 = f'[VRV]({link.url})'
                     elif "https://www.animelab.com/" in link.url:
-                        link5 = f'[AnimeLab]({link.url})')
+                        link5 = f'[AnimeLab]({link.url})'
             embed.add_field(name=':paperclip: **Stream Links\n**', value=f'{link1}\n{link2}\n{link3}\n{link4}\n{link5}')
             embed.add_field(name=':paperclip: **Link\n**', value=f'[Kitsu]({anime.url})'[:1000])
             await message.edit(embed=embed)

@@ -1820,6 +1820,7 @@ async def anime(ctx, *, query=None):
             b = jikan.search('anime', f'{anime.title}')
             mid = b['results'][0]
             malid = mid['mal_id']
+            rate = mid['score']
             if anime.next_release is None:
                 z = None
             else:
@@ -1835,13 +1836,12 @@ async def anime(ctx, *, query=None):
             embed=discord.Embed()
             embed.set_thumbnail(url=f'{anime.poster_image_url}')
             embed.add_field(name=f'{anime.title}', value=f'{anime.synopsis}'[:1000])
-            embed.add_field(name=':star: **Rating\n**', value=f'{anime.average_rating}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{rate}'[:1000])
             embed.add_field(name=':tv: **Type\n**', value=f'{anime.subtype}'[:1000])
             embed.add_field(name=':computer: **Total Episodes\n**', value=f'{anime.episode_count}'[:1000])
             embed.add_field(name=':play_pause:  **Episode Length\n**', value=f'{anime.episode_length} minutes'[:1000])
             embed.add_field(name=':track_next: **Next Episode\n**', value=f'{z}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{anime.status}'[:1000])
-            embed.add_field(name=':heart: **Popularity\n**', value=f'{anime.popularity_rank}'[:1000])
             embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
             streaming_links = await client.fetch_anime_streaming_links(anime)
             if streaming_links:

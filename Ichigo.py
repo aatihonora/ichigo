@@ -19,6 +19,8 @@ import imdb
 from imdb import IMDb, IMDbError
 import re
 import tmdbsimple as tmdb
+from jikanpy import Jikan
+
 
 
 bot = commands.Bot(command_prefix=".")
@@ -1812,9 +1814,12 @@ async def anime(ctx, *, query=None):
         if not entries:
             await ctx.send(f'No entries found for "{query}"')
             return
-
         message = await ctx.send('‎')
         for i, anime in enumerate(entries, 1):
+            jikan = Jikan()
+            b = jikan.search('anime', f'{anime.title}')
+            mid = b['results'][0]
+            malid = mid['mal_id']
             if anime.next_release is None:
                 z = None
             else:
@@ -1842,17 +1847,17 @@ async def anime(ctx, *, query=None):
             if streaming_links:
                 for link in streaming_links:
                     if "http://www.hulu.com/" in link.url:
-                        link1 = f'([Hulu]({link.url})'
+                        embed.add_field(name=':paperclip: **Hulu\n**', value=f'[Hulu]({link.url})')
                     elif "http://www.crunchyroll.com/" in link.url:
-                        link2 = f'[Crunchyroll]({link.url})'
+                        embed.add_field(name=':paperclip: **Crunchyroll\n**', value=f'[Crunchyroll]({link.url})')
                     elif "https://www.netflix.com/" in link.url:
-                        link3 = f'[Netflix]({link.url})'
+                        embed.add_field(name=':paperclip: **Netflix\n**', value=f'[Netflix]({link.url})')
                     elif "https://vrv.co/" in link.url:
-                        link4 = f'[VRV]({link.url})'
+                        embed.add_field(name=':paperclip: **VRV\n**', value=f'[VRV]({link.url})')
                     elif "https://www.animelab.com/" in link.url:
-                        link5 = f'[AnimeLab]({link.url})'
-            embed.add_field(name=':paperclip: **Stream Links\n**', value=f'{link1}\n{link2}\n{link3}\n{link4}\n{link5}')
-            embed.add_field(name=':paperclip: **Link\n**', value=f'[Kitsu]({anime.url})'[:1000])
+                        embed.add_field(name=':paperclip: **AnimeLab\n**', value=f'[AnimeLab]({link.url})')
+            embed.add_field(name=':paperclip: **Kitsu\n**', value=f'[Kitsu]({anime.url})'[:1000])
+            embed.add_field(name=':paperclip: **MyAnimeList\n**', value=f'[MyAnimeList](http://myanimelist.net/anime/{malid})'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")

@@ -18,7 +18,7 @@ from discord import File
 import imdb
 from imdb import IMDb, IMDbError
 import re
-
+import tmdbsimple as tmdb
 
 
 bot = commands.Bot(command_prefix=".")
@@ -1710,7 +1710,7 @@ async def manime(ctx, *, anim=None):
                 embed.add_field(name=':satellite: **Related Animes\n**', value=f'{ream}'[:500])
                 embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}'[:200])
                 embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}'[:200])
-                embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}'[:1000])
+                embed.add_field(name=':paperclip: **Link\n**', value=f'[MyAnimeList]({b.url})'[:1000])
             await ctx.send(embed=embed)
             return
 
@@ -1761,7 +1761,7 @@ async def manimeid(ctx, *, anim=None):
                 embed.add_field(name=':satellite: **Related Animes\n**', value=f'{ream}'[:500])
                 embed.add_field(name=':musical_note: **Openings\n**', value=f'{b.opening_themes}'[:200])
                 embed.add_field(name=':musical_note: **Endings\n**', value=f'{b.ending_themes}'[:200])
-                embed.add_field(name=':paperclip: **Link\n**', value=f'{b.url}'[:1000])
+                embed.add_field(name=':paperclip: **Link\n**', value=f'[MyAnimeList]({b.url})'[:1000])
             await ctx.send(embed=embed)
             return
 
@@ -1838,7 +1838,21 @@ async def anime(ctx, *, query=None):
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{anime.status}'[:1000])
             embed.add_field(name=':heart: **Popularity\n**', value=f'{anime.popularity_rank}'[:1000])
             embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
-            embed.add_field(name=':paperclip: **Link\n**', value=f'{anime.url}'[:1000])
+            streaming_links = await client.fetch_anime_streaming_links(anime)
+            if streaming_links:
+                for link in streaming_links:
+                    if "http://www.hulu.com/" in link.url:
+                        link1 = f'([Hulu]{link.url})')
+                    elif "http://www.crunchyroll.com/" in link.url:
+                        link2 = f'[Crunchyroll]({link.url})')
+                    elif "https://www.netflix.com/" in link.url:
+                        link3 = f'[Netflix]({link.url})')
+                    elif "https://vrv.co/" in link.url:
+                        link4 = f'[VRV]({link.url})')
+                    elif "https://www.animelab.com/" in link.url:
+                        link5 = f'[AnimeLab]({link.url})')
+            embed.add_field(name=':paperclip: **Stream Links\n**', value=f'{link1}\n{link2}\n{link3}\n{link4}\n{link5}')
+            embed.add_field(name=':paperclip: **Link\n**', value=f'[Kitsu]({anime.url})'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")
@@ -1899,7 +1913,7 @@ async def mmanga(ctx, *, manga=None):
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f' {manga.chapters}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f' {manga.status}'[:1000])
             embed.add_field(name=':ledger: **Related Mangas\n**', value=f' {rema}'[:500])
-            embed.add_field(name=':paperclip: **Link\n**', value=f' {manga.url}'[:1000])
+            embed.add_field(name=':paperclip: **Link\n**', value=f' [MyAnimeList]({manga.url})'[:1000])
             await ctx.send(embed=embed)
 
             
@@ -1944,7 +1958,7 @@ async def manga(ctx, *, query=None):
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{manga.status}'[:1000])
             embed.add_field(name=':heart: **Popularity\n**', value=f'{manga.popularity_rank}'[:1000])
             embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
-            embed.add_field(name=':paperclip: **Link\n**', value=f'{manga.url}'[:1000])
+            embed.add_field(name=':paperclip: **Link\n**', value=f'[Kitsu]({manga.url})'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")
@@ -1973,6 +1987,10 @@ async def manga(ctx, *, query=None):
             await message.delete()
         elif str(ctx.channel) == "👍┃anime-manga-recommendations":
             return
+
+
+                                         #Movies & TV Series
+
 
 
 @bot.command()
@@ -2014,7 +2032,7 @@ async def tv(ctx, *, name=None):
                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                 elif cover1 is not None:
                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                     embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2027,7 +2045,7 @@ async def tv(ctx, *, name=None):
                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                     embed.set_thumbnail(url=cover1)
                 msg = await ctx.send(embed=embed)
                 await msg.add_reaction(u"\u27A1")
@@ -2069,7 +2087,7 @@ async def tv(ctx, *, name=None):
                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                         elif cover1 is not None:
                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                             embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2082,7 +2100,7 @@ async def tv(ctx, *, name=None):
                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                             embed.set_thumbnail(url=cover1)
                         await msg.edit(embed=embed)
                         await msg.add_reaction(u"\u27A1")
@@ -2124,7 +2142,7 @@ async def tv(ctx, *, name=None):
                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                 elif cover1 is not None:
                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                     embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2137,7 +2155,7 @@ async def tv(ctx, *, name=None):
                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                     embed.set_thumbnail(url=cover1)
                                 await msg.edit(embed=embed)
                                 await msg.add_reaction(u"\u27A1")
@@ -2179,7 +2197,7 @@ async def tv(ctx, *, name=None):
                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                         elif cover1 is not None:
                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                             embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2192,7 +2210,7 @@ async def tv(ctx, *, name=None):
                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                             embed.set_thumbnail(url=cover1)
                                         await msg.edit(embed=embed)
                                         await msg.add_reaction(u"\u27A1")
@@ -2234,7 +2252,7 @@ async def tv(ctx, *, name=None):
                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                 elif cover1 is not None:
                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                     embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2247,7 +2265,7 @@ async def tv(ctx, *, name=None):
                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                     embed.set_thumbnail(url=cover1)
                                                 await msg.edit(embed=embed)
                                                 await msg.add_reaction(u"\u27A1")
@@ -2289,7 +2307,7 @@ async def tv(ctx, *, name=None):
                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                         elif cover1 is not None:
                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                             embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2302,7 +2320,7 @@ async def tv(ctx, *, name=None):
                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                             embed.set_thumbnail(url=cover1)
                                                         await msg.edit(embed=embed)
                                                         await msg.add_reaction(u"\u27A1")
@@ -2344,7 +2362,7 @@ async def tv(ctx, *, name=None):
                                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                                 elif cover1 is not None:
                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                                     embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2357,7 +2375,7 @@ async def tv(ctx, *, name=None):
                                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                                     embed.set_thumbnail(url=cover1)
                                                                 await msg.edit(embed=embed)
                                                                 await msg.add_reaction(u"\u27A1")
@@ -2399,7 +2417,7 @@ async def tv(ctx, *, name=None):
                                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                                         elif cover1 is not None:
                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                                             embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2412,7 +2430,7 @@ async def tv(ctx, *, name=None):
                                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                                             embed.set_thumbnail(url=cover1)
                                                                         await msg.edit(embed=embed)
                                                                         await msg.add_reaction(u"\u27A1")
@@ -2454,7 +2472,7 @@ async def tv(ctx, *, name=None):
                                                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                                                 elif cover1 is not None:
                                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                                                     embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2467,7 +2485,7 @@ async def tv(ctx, *, name=None):
                                                                                         embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                                     embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                                    embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                                                     embed.set_thumbnail(url=cover1)
                                                                                 await msg.edit(embed=embed)
                                                                                 await msg.add_reaction(u"\u27A1")
@@ -2509,7 +2527,7 @@ async def tv(ctx, *, name=None):
                                                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
+                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])    
                                                                                         elif cover1 is not None:
                                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
                                                                                             embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
@@ -2522,7 +2540,7 @@ async def tv(ctx, *, name=None):
                                                                                                 embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
                                                                                             embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
-                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
+                                                                                            embed.add_field(name=':paperclip: **Link\n**', value=f'[IMDb](https://www.imdb.com/title/tt{movieid1})'[:1000])
                                                                                             embed.set_thumbnail(url=cover1)
                                                                                         await msg.edit(embed=embed)
                                                                                         await msg.add_reaction(u"\u274C")
@@ -2638,8 +2656,152 @@ async def tv(ctx, *, name=None):
            await msg.delete()
 
 
-                                          #Games & Fun
 
+
+@bot.command()
+async def movie(ctx, *, nam=None):
+    channels = ["📽┃series-movie-chat"]
+    if str(ctx.channel) in channels:
+            if nam is None:
+                await ctx.send(".movie name")
+            elif nam is not None:
+                name = str(nam)
+                tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
+                search = tmdb.Search()
+                response = search.movie(query=name)
+                message = await ctx.send('‎')
+                for s in search.results:
+                    title = s['title']
+                    thumbnail = s['poster_path']
+                    link = s['id']
+                    movie = tmdb.Movies(link)
+                    response = movie.info()
+                    votes = s['vote_count']
+                    rating = s['vote_average']
+                    embed = discord.Embed()
+                    embed.add_field(name=f'{title}', value=s['overview'][:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
+                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['release_date'])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')
+                    embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
+                    await message.edit(embed=embed)
+                    await message.edit(embed=embed)
+                    await message.add_reaction(u"\u27A1")
+                    await message.add_reaction(u"\u274C")
+                    emote = [u"\u27A1", u"\u274C"]
+                    try:
+                        def check(reaction, user):
+                            return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                        if str(reaction) == u"\u27A1":
+                            await message.remove_reaction(u"\u27A1", user)
+                            continue
+                        elif str(reaction) == u"\u274C":
+                            await message.delete()
+                            return
+                    except asyncio.TimeoutError:
+                        user = bot.user
+                        await message.remove_reaction(u"\u27A1", user)
+                        await message.remove_reaction(u"\u274C", user)
+                        await asyncio.sleep(60)
+                        await message.delete()
+                        break
+
+
+@bot.command()
+async def movieimage(ctx, *, nam=None):
+    channels = ["📽┃series-movie-chat"]
+    if str(ctx.channel) in channels:
+            if nam is None:
+                await ctx.send(".movie name")
+            elif nam is not None:
+                name = str(nam)
+                tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
+                search = tmdb.Search()
+                response = search.movie(query=name)
+                message = await ctx.send('‎')
+                for s in search.results:
+                    thumbnail = s['poster_path']
+                    link = s['id']
+                    votes = s['vote_count']
+                    rating = s['vote_average']
+                    embed = discord.Embed(title=s['title'])
+                    embed.set_image(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
+                    await message.edit(embed=embed)
+                    await message.edit(embed=embed)
+                    await message.add_reaction(u"\u27A1")
+                    await message.add_reaction(u"\u274C")
+                    emote = [u"\u27A1", u"\u274C"]
+                    try:
+                        def check(reaction, user):
+                            return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                        if str(reaction) == u"\u27A1":
+                            await message.remove_reaction(u"\u27A1", user)
+                            continue
+                        elif str(reaction) == u"\u274C":
+                            await message.delete()
+                            return
+                    except asyncio.TimeoutError:
+                        user = bot.user
+                        await message.remove_reaction(u"\u27A1", user)
+                        await message.remove_reaction(u"\u274C", user)
+                        await asyncio.sleep(60)
+                        await message.delete()
+                        break
+
+
+@bot.command()
+async def series(ctx, *, nam=None):
+    channels = ["📽┃series-movie-chat"]
+    if str(ctx.channel) in channels:
+            if nam is None:
+                await ctx.send(".movie name")
+            elif nam is not None:
+                name = str(nam)
+                tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
+                search = tmdb.Search()
+                response = search.tv(query=name)
+                message = await ctx.send('‎')
+                for s in search.results:
+                    title = s['original_name']
+                    thumbnail = s['poster_path']
+                    link = s['id']
+                    votes = s['vote_count']
+                    rating = s['vote_average']
+                    embed = discord.Embed()
+                    embed.add_field(name=s['original_name'], value=s['overview'][:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
+                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['first_air_date'])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')
+                    embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
+                    await message.edit(embed=embed)
+                    await message.edit(embed=embed)
+                    await message.add_reaction(u"\u27A1")
+                    await message.add_reaction(u"\u274C")
+                    emote = [u"\u27A1", u"\u274C"]
+                    try:
+                        def check(reaction, user):
+                            return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                        if str(reaction) == u"\u27A1":
+                            await message.remove_reaction(u"\u27A1", user)
+                            continue
+                        elif str(reaction) == u"\u274C":
+                            await message.delete()
+                            return
+                    except asyncio.TimeoutError:
+                        user = bot.user
+                        await message.remove_reaction(u"\u27A1", user)
+                        await message.remove_reaction(u"\u274C", user)
+                        await asyncio.sleep(60)
+                        await message.delete()
+                        break
+
+
+
+
+                                          #Games & Fun
 
 @bot.command()
 async def cup(ctx, *, coin=0):

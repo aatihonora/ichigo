@@ -1976,14 +1976,13 @@ async def manga(ctx, *, query=None):
 
 
 @bot.command()
-async def movie(ctx, *, name=None):
+async def tv(ctx, *, name=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
         try:
             if name is None:
                 await ctx.send(".movie name")
             elif name is not None:
-                msg = await ctx.send('‎‎')
                 ia = imdb.IMDb()
                 a = str(name)
                 movies = ia.search_movie(a)
@@ -1999,25 +1998,38 @@ async def movie(ctx, *, name=None):
                 a20 = movie1.data['runtimes']
                 a2 = str(a20)
                 runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                aired1 = movie1.data['original air date']
+                aired1 = movie1.data['year']
                 title1 = movie1.data['original title']
                 rating1 = movie1.data['rating'] 
+                kind1 = movie1.data['kind'] 
                 if cover1 is None:
                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                    if kind1 != "movie":
+                        seasons1 = movie1.data['number of seasons']
+                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                    if kind1 == "movie":
+                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                 elif cover1 is not None:
                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                    if kind1 != "movie":
+                        seasons1 = movie1.data['number of seasons']
+                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                    if kind1 == "movie":
+                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                     embed.set_thumbnail(url=cover1)
-                await msg.edit(embed=embed)
+                msg = await ctx.send(embed=embed)
                 await msg.add_reaction(u"\u27A1")
                 await msg.add_reaction(u"\u274C")
                 emote = [u"\u27A1", u"\u274C"]
@@ -2041,22 +2053,35 @@ async def movie(ctx, *, name=None):
                         a20 = movie1.data['runtimes']
                         a2 = str(a20)
                         runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                        aired1 = movie1.data['original air date']
+                        aired1 = movie1.data['year']
                         title1 = movie1.data['original title']
                         rating1 = movie1.data['rating'] 
+                        kind1 = movie1.data['kind']
                         if cover1 is None:
                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                            if kind1 != "movie":
+                                seasons1 = movie1.data['number of seasons']
+                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                            if kind1 == "movie":
+                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                         elif cover1 is not None:
                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                            if kind1 != "movie":
+                                seasons1 = movie1.data['number of seasons']
+                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                            if kind1 == "movie":
+                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                             embed.set_thumbnail(url=cover1)
                         await msg.edit(embed=embed)
@@ -2083,22 +2108,35 @@ async def movie(ctx, *, name=None):
                                 a20 = movie1.data['runtimes']
                                 a2 = str(a20)
                                 runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                aired1 = movie1.data['original air date']
+                                aired1 = movie1.data['year']
                                 title1 = movie1.data['original title']
                                 rating1 = movie1.data['rating'] 
+                                kind1 = movie1.data['kind']
                                 if cover1 is None:
                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                    if kind1 != "movie":
+                                        seasons1 = movie1.data['number of seasons']
+                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                    if kind1 == "movie":
+                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                 elif cover1 is not None:
                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                    if kind1 != "movie":
+                                        seasons1 = movie1.data['number of seasons']
+                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                    if kind1 == "movie":
+                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                     embed.set_thumbnail(url=cover1)
                                 await msg.edit(embed=embed)
@@ -2125,22 +2163,35 @@ async def movie(ctx, *, name=None):
                                         a20 = movie1.data['runtimes']
                                         a2 = str(a20)
                                         runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                        aired1 = movie1.data['original air date']
+                                        aired1 = movie1.data['year']
                                         title1 = movie1.data['original title']
                                         rating1 = movie1.data['rating'] 
+                                        kind1 = movie1.data['kind']
                                         if cover1 is None:
                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                            if kind1 != "movie":
+                                                seasons1 = movie1.data['number of seasons']
+                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                            if kind1 == "movie":
+                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                         elif cover1 is not None:
                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                            if kind1 != "movie":
+                                                seasons1 = movie1.data['number of seasons']
+                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                            if kind1 == "movie":
+                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                             embed.set_thumbnail(url=cover1)
                                         await msg.edit(embed=embed)
@@ -2167,22 +2218,35 @@ async def movie(ctx, *, name=None):
                                                 a20 = movie1.data['runtimes']
                                                 a2 = str(a20)
                                                 runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                aired1 = movie1.data['original air date']
+                                                aired1 = movie1.data['year']
                                                 title1 = movie1.data['original title']
                                                 rating1 = movie1.data['rating'] 
+                                                kind1 = movie1.data['kind']
                                                 if cover1 is None:
                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                    if kind1 != "movie":
+                                                        seasons1 = movie1.data['number of seasons']
+                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                    if kind1 == "movie":
+                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                 elif cover1 is not None:
                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                    if kind1 != "movie":
+                                                        seasons1 = movie1.data['number of seasons']
+                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                    if kind1 == "movie":
+                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                     embed.set_thumbnail(url=cover1)
                                                 await msg.edit(embed=embed)
@@ -2209,22 +2273,35 @@ async def movie(ctx, *, name=None):
                                                         a20 = movie1.data['runtimes']
                                                         a2 = str(a20)
                                                         runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                        aired1 = movie1.data['original air date']
+                                                        aired1 = movie1.data['year']
                                                         title1 = movie1.data['original title']
                                                         rating1 = movie1.data['rating'] 
+                                                        kind1 = movie1.data['kind']
                                                         if cover1 is None:
                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                            if kind1 != "movie":
+                                                                seasons1 = movie1.data['number of seasons']
+                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                            if kind1 == "movie":
+                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                         elif cover1 is not None:
                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                            if kind1 != "movie":
+                                                                seasons1 = movie1.data['number of seasons']
+                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                            if kind1 == "movie":
+                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                             embed.set_thumbnail(url=cover1)
                                                         await msg.edit(embed=embed)
@@ -2251,22 +2328,35 @@ async def movie(ctx, *, name=None):
                                                                 a20 = movie1.data['runtimes']
                                                                 a2 = str(a20)
                                                                 runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                                aired1 = movie1.data['original air date']
+                                                                aired1 = movie1.data['year']
                                                                 title1 = movie1.data['original title']
                                                                 rating1 = movie1.data['rating'] 
+                                                                kind1 = movie1.data['kind']
                                                                 if cover1 is None:
                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                    if kind1 != "movie":
+                                                                        seasons1 = movie1.data['number of seasons']
+                                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                    if kind1 == "movie":
+                                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                                 elif cover1 is not None:
                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                    if kind1 != "movie":
+                                                                        seasons1 = movie1.data['number of seasons']
+                                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                    if kind1 == "movie":
+                                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                                     embed.set_thumbnail(url=cover1)
                                                                 await msg.edit(embed=embed)
@@ -2293,22 +2383,35 @@ async def movie(ctx, *, name=None):
                                                                         a20 = movie1.data['runtimes']
                                                                         a2 = str(a20)
                                                                         runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                                        aired1 = movie1.data['original air date']
+                                                                        aired1 = movie1.data['year']
                                                                         title1 = movie1.data['original title']
                                                                         rating1 = movie1.data['rating'] 
+                                                                        kind1 = movie1.data['kind']
                                                                         if cover1 is None:
                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                            if kind1 != "movie":
+                                                                                seasons1 = movie1.data['number of seasons']
+                                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                            if kind1 == "movie":
+                                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                                         elif cover1 is not None:
                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                            if kind1 != "movie":
+                                                                                seasons1 = movie1.data['number of seasons']
+                                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                            if kind1 == "movie":
+                                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                                             embed.set_thumbnail(url=cover1)
                                                                         await msg.edit(embed=embed)
@@ -2335,22 +2438,35 @@ async def movie(ctx, *, name=None):
                                                                                 a20 = movie1.data['runtimes']
                                                                                 a2 = str(a20)
                                                                                 runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                                                aired1 = movie1.data['original air date']
+                                                                                aired1 = movie1.data['year']
                                                                                 title1 = movie1.data['original title']
                                                                                 rating1 = movie1.data['rating'] 
+                                                                                kind1 = movie1.data['kind']
                                                                                 if cover1 is None:
                                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                                    if kind1 != "movie":
+                                                                                        seasons1 = movie1.data['number of seasons']
+                                                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                    if kind1 == "movie":
+                                                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                                                 elif cover1 is not None:
                                                                                     embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                    embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                                    if kind1 != "movie":
+                                                                                        seasons1 = movie1.data['number of seasons']
+                                                                                        embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                        embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                                    embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                    if kind1 == "movie":
+                                                                                        embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                     embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                                    embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                    embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                                     embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                                                     embed.set_thumbnail(url=cover1)
                                                                                 await msg.edit(embed=embed)
@@ -2377,22 +2493,35 @@ async def movie(ctx, *, name=None):
                                                                                         a20 = movie1.data['runtimes']
                                                                                         a2 = str(a20)
                                                                                         runtimes1 = (re.sub(r"\W+|&nbsp", " ", a2))
-                                                                                        aired1 = movie1.data['original air date']
+                                                                                        aired1 = movie1.data['year']
                                                                                         title1 = movie1.data['original title']
                                                                                         rating1 = movie1.data['rating'] 
+                                                                                        kind1 = movie1.data['kind']
                                                                                         if cover1 is None:
                                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                                            if kind1 != "movie":
+                                                                                                seasons1 = movie1.data['number of seasons']
+                                                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                            if kind1 == "movie":
+                                                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])    
                                                                                         elif cover1 is not None:
                                                                                             embed = discord.Embed(title=f'{title1}', description=f'{synopsis1}'[:1000])
+                                                                                            embed.add_field(name=':tv: **Type\n**', value=f'{kind1}'[:1000])
+                                                                                            if kind1 != "movie":
+                                                                                                seasons1 = movie1.data['number of seasons']
+                                                                                                embed.add_field(name=':computer: **Seasons\n**', value=f'{seasons1}'[:1000])
+                                                                                                embed.add_field(name=':play_pause: **Length Per Episode\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':star: **Rating\n**', value=f'{rating1}'[:1000])
-                                                                                            embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
+                                                                                            if kind1 == "movie":
+                                                                                                embed.add_field(name=':play_pause: **Length\n**', value=f'{runtimes1} minutes'[:1000])
                                                                                             embed.add_field(name=':cd: **Genres\n**', value=f'{genres1}'[:1000])
-                                                                                            embed.add_field(name=':satellite: **Aired\n**', value=f'{aired1}'[:1000])
+                                                                                            embed.add_field(name=':satellite: **Released In\n**', value=f'{aired1}'[:1000])
                                                                                             embed.add_field(name=':paperclip: **Link\n**', value=f'https://www.imdb.com/title/tt{movieid1}'[:1000])
                                                                                             embed.set_thumbnail(url=cover1)
                                                                                         await msg.edit(embed=embed)
@@ -2483,7 +2612,7 @@ async def movie(ctx, *, name=None):
                                     await msg.delete()
                                     return
                             elif str(reaction) == u"\u274C":
-                                await msg1.delete()
+                                await msg.delete()
                                 return
                         except asyncio.TimeoutError:
                             user = bot.user
@@ -2507,7 +2636,7 @@ async def movie(ctx, *, name=None):
         except (IMDbError, KeyError):
            await ctx.send('Page Not Found')
            await msg.delete()
-            
+
 
                                           #Games & Fun
 

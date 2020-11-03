@@ -4,5 +4,5 @@ kitsu-wrapper==1.0.0
 imdbpy
 tmdbsimple
 jikanpy
-waterisyou==1.0
+waterisyou1
 

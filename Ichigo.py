@@ -2158,6 +2158,134 @@ async def seasonal_error(ctx, error):
         await ctx.send(f'Please try again after {c} seconds')
 
 
+
+@bot.command()
+@commands.cooldown(1, 600, type=commands.BucketType.channel)
+async def upcominganimes(ctx):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
+    member = ctx.message.author
+    if str(ctx.channel) in channels:
+        jikan = Jikan()
+        b = jikan.season_later()
+        anim = b['anime']
+        ani = len(anim)
+        m = 0
+        message = await ctx.send('Searching...')
+        for anime in range(ani):
+            anime = anim[m]
+            air = anime['airing_start']
+            url = anime['url']
+            image = anime['image_url']
+            name = anime['title']
+            synopsis = anime['synopsis']
+            episodes = anime['episodes']
+            status = anime['continuing']
+            rate = anime['score']
+            embed=discord.Embed()
+            embed.add_field(name=f'{name}', value=f'{synopsis}'[:1000])
+            embed.set_image(url=f'{image}')
+            embed.add_field(name=':satellite:  **Airing\n**', value=f'{status}'[:1000])
+            embed.add_field(name=':paperclip: **MyAnimeList\n**', value=f'[MyAnimeList]({url})'[:1000])
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    m += 1
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)
+                break
+
+        await message.remove_reaction(u"\u27A1", user)
+        await message.remove_reaction(u"\u274C", user)      
+        await asyncio.sleep(60)
+        await message.delete()
+
+
+@seasonal.error
+async def seasonal_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')
+
+
+
+
+@bot.command()
+async def mal(ctx, *, u=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
+    member = ctx.message.author
+    if str(ctx.channel) in channels:
+        if u is None:
+            await ctx.send('User not found')
+            return
+        jikan = Jikan()
+        us = str(u)
+        user = jikan.user(username=us, request='profile')
+        name = user['username']
+        url = user['url']
+        anime = user['anime_stats']
+        days = anime['days_watched']
+        score = anime['mean_score']
+        watching = anime['watching']
+        completed = anime['completed']
+        hold = anime['on_hold']
+        dropped = anime['dropped']
+        ptw = anime['plan_to_watch']
+        rewatched = anime['rewatched']
+        episodes = anime['episodes_watched']
+        manga = user['manga_stats']
+        mdays = manga['days_read']
+        mscore = manga['mean_score']
+        mreading = manga['reading']
+        mcompleted = manga['completed']
+        mhold = manga['on_hold']
+        mdropped = manga['dropped']
+        mptw = manga['plan_to_read']
+        mreread = manga['reread']
+        mchapters = manga['chapters_read']
+        mvolumes = manga['volumes_read']
+        embed = discord.Embed(title=f'{name}')
+        embed.add_field(name=f':computer: **Anime Stats\n**', value=f':calendar_spiral: **Watch Time** : {days} days,  '
+                                                                    f':star: **Mean Score** : {score},  '
+                                                                    f':desktop: **Watching** : {watching},  '
+                                                                    f':ballot_box_with_check: **Completed** : {completed},  '
+                                                                    f':grey_exclamation: **On Hold** : {hold},  '
+                                                                    f':x: **Dropped** : {dropped},  '
+                                                                    f':calendar: **Planned** : {ptw},  '
+                                                                    f':repeat_one: **Rewatched** : {rewatched},  '
+                                                                    f':1234: **Total Episodes** : {episodes},  ')
+        embed.add_field(name=f':notebook_with_decorative_cover: **Manga Stats\n**', value=f':calendar_spiral: **Read Time** : {mdays} days,  '
+                                                                                            f':star: **Mean Score** : {mscore},  '
+                                                                                            f':book: **Reading** : {mreading},  '
+                                                                                            f':ballot_box_with_check: **Completed** : {mcompleted},  '
+                                                                                            f':grey_exclamation: **On Hold** : {mhold},  '
+                                                                                            f':x: **Dropped** : {mdropped},  '
+                                                                                            f':calendar: **Planned** : {mptw},  '
+                                                                                            f':repeat_one: **Reread** : {mreread},  '
+                                                                                            f':dividers: **Total Chapters** : {mchapters},  '
+                                                                                            f':file_folder: **Total Volumes** : {mvolumes},  ')
+        embed.add_field(name=':paperclip: **User\'s MyAnimeList\n**', value=f'[MyAnimeList]({url})'[:1000])
+        await ctx.send(embed=embed)
+
+
+
+
+
+
                                          #Movies & TV Series
 
 
@@ -2975,6 +3103,7 @@ async def series(ctx, *, nam=None):
                 await message.remove_reaction(u"\u274C", user)      
                 await asyncio.sleep(60)
                 await message.delete()
+
 
 
 

@@ -3170,13 +3170,13 @@ async def trending(ctx, *, nam=None):
                 m = 0
                 for s in range(movi):
                     s = movies[m]
-                    title = s['original_name']
+                    title = s['title']
                     thumbnail = s['poster_path']
                     link = s['id']
                     votes = s['vote_count']
                     rating = s['vote_average']
                     embed = discord.Embed()
-                    embed.add_field(name=s['original_name'], value=s['overview'][:1000])
+                    embed.add_field(name=f'{title}', value=s['overview'][:1000])
                     embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
                     embed.add_field(name=':calendar_spiral: **Released\n**', value=s['first_air_date'])
                     embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')

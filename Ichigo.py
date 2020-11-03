@@ -2025,6 +2025,7 @@ async def character(ctx, *, query=None):
             name = cha['name']
             animeresult = cha['animeography']
             mangaresult = cha['mangaography']
+            ma = len(mangaresult)
             ani = len(animeresult)
             if ani > 3:
                 ani = 3
@@ -2041,11 +2042,12 @@ async def character(ctx, *, query=None):
                 embed.add_field(name=':movie_camera: **Role\n**', value=f'{arole}')
                 embed.add_field(name=':paperclip: **Anime MyAnimeList\n**', value=f'[MyAnimeList]({aurl})')
                 m += 1
-            manga = mangaresult[0]
-            maname = manga['name']
-            maurl = manga['url']
-            embed.add_field(name=':book: **Manga\n**', value=f'{maname}')
-            embed.add_field(name=':paperclip: **Manga MyAnimeList\n**', value=f'[MyAnimeList]({maurl})')
+            if mangaresult:
+                manga = mangaresult[0]
+                maname = manga['name']
+                maurl = manga['url']
+                embed.add_field(name=':book: **Manga\n**', value=f'{maname}')
+                embed.add_field(name=':paperclip: **Manga MyAnimeList\n**', value=f'[MyAnimeList]({maurl})')
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")

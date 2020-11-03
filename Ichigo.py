@@ -2074,15 +2074,88 @@ async def character(ctx, *, query=None):
         await message.delete()
 
 
+@bot.command()
+@commands.cooldown(1, 600, type=commands.BucketType.channel)
+async def seasonal(ctx, year=0, *,  s=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
+    member = ctx.message.author
+    if str(ctx.channel) in channels:
+        if s is not None:
+            season = str(s)
+        elif s is None:
+            d = datetime.datetime.now()
+            t = d.strftime('%m') 
+            print(t)
+            ti = int(t)
+            year  = d.strftime('%Y')
+            if ti == 1 or ti == 2 or ti == 3:
+                season = 'winter'
+            elif ti == 4 or ti == 5 or ti == 6:
+                season = 'spring'
+            elif ti == 7 or ti == 8 or ti == 9:
+                season = 'summer'
+            elif ti == 10 or ti == 11 or ti == 12:
+                season = 'fall'
+        jikan = Jikan()
+        print(season)
+        print(year)
+        b = jikan.season(year=year, season=season)
+        anim = b['anime']
+        ani = len(anim)
+        m = 0
+        message = await ctx.send('Searching...')
+        for anime in range(ani):
+            anime = anim[m]
+            air = anime['airing_start']
+            url = anime['url']
+            image = anime['image_url']
+            name = anime['title']
+            synopsis = anime['synopsis']
+            episodes = anime['episodes']
+            status = anime['continuing']
+            rate = anime['score']
+            embed=discord.Embed()
+            embed.add_field(name=f'{name}', value=f'{synopsis}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{rate}'[:1000])
+            embed.set_thumbnail(url=f'{image}')
+            embed.add_field(name=':computer: **Episodes\n**', value=f'{episodes}'[:1000])
+            embed.add_field(name=':satellite:  **Still Airing\n**', value=f'{status}'[:1000])
+            embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'{air}')
+            embed.add_field(name=':paperclip: **MyAnimeList\n**', value=f'[MyAnimeList]({url})'[:1000])
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    m += 1
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)
+                break
+
+        await message.remove_reaction(u"\u27A1", user)
+        await message.remove_reaction(u"\u274C", user)      
+        await asyncio.sleep(60)
+        await message.delete()
 
 
-
-
-
-
-
-
-
+    
+@seasonal.error
+async def seasonal_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        c = '{:.0f}'.format(error.retry_after)            
+        await ctx.send(f'Please try again after {c} seconds')
 
 
                                          #Movies & TV Series

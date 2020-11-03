@@ -1814,7 +1814,7 @@ async def anime(ctx, *, query=None):
         if not entries:
             await ctx.send(f'No entries found for "{query}"')
             return
-        message = await ctx.send('‎')
+        message = await ctx.send('Searching...')
         for i, anime in enumerate(entries, 1):
             jikan = Jikan()
             b = jikan.search('anime', f'{anime.title}')
@@ -1943,8 +1943,13 @@ async def manga(ctx, *, query=None):
         if not entries:
             await ctx.send(f'No entries found for "{query}"')
             return
-        message = await ctx.send('‎')
+        message = await ctx.send('Searching...')
         for i, manga in enumerate(entries, 1):
+            jikan = Jikan()
+            b = jikan.search('manga', f'{manga.title}')
+            mid = b['results'][0]
+            malid = mid['url']
+            rate = mid['score']
             if manga.started_at is None:
                 y = None
             else:
@@ -1955,15 +1960,15 @@ async def manga(ctx, *, query=None):
                 x = f'{manga.ended_at.strftime("%d-%m-%Y")}'
             embed=discord.Embed()
             embed.add_field(name=f'{manga.title}', value=f'{manga.synopsis}'[:1000])
-            embed.add_field(name=':star: **Rating\n**', value=f'{manga.average_rating}'[:1000])
+            embed.add_field(name=':star: **Rating\n**', value=f'{rate}'[:1000])
             embed.set_thumbnail(url=f'{manga.poster_image_url}')
             embed.add_field(name=':page_facing_up: **Type\n**', value=f'{manga.subtype}'[:1000])
             embed.add_field(name=':file_folder: **Volumes\n**', value=f'{manga.volume_count}'[:1000])
             embed.add_field(name=':dividers: **Total Chapters\n**', value=f'{manga.chapter_count}'[:1000])
             embed.add_field(name=':inbox_tray: **Status\n**', value=f'{manga.status}'[:1000])
-            embed.add_field(name=':heart: **Popularity\n**', value=f'{manga.popularity_rank}'[:1000])
             embed.add_field(name=':calendar_spiral: **Aired\n**', value=f'From {y} to {x}'[:1000])
-            embed.add_field(name=':paperclip: **Link\n**', value=f'[Kitsu]({manga.url})'[:1000])
+            embed.add_field(name=':paperclip: **Kitsu\n**', value=f'[Kitsu]({manga.url})'[:1000])
+            embed.add_field(name=':paperclip: **MyAnimeList\n**', value=f'[MyAnimeList]({malid})'[:1000])
             await message.edit(embed=embed)
             await message.add_reaction(u"\u27A1")
             await message.add_reaction(u"\u274C")
@@ -1992,6 +1997,90 @@ async def manga(ctx, *, query=None):
             await message.delete()
         elif str(ctx.channel) == "👍┃anime-manga-recommendations":
             return
+
+
+
+
+@bot.command()
+async def character(ctx, *, query=None):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
+    member = ctx.message.author
+    if str(ctx.channel) in channels:
+        if query is None:
+            await ctx.send('Manga not found')
+            return
+        jikan = Jikan()
+        b = jikan.search('character', f'{query}')
+        results = b['results']
+        message = await ctx.send('Searching...')
+        for ch in results:
+            malid = ch['mal_id']
+            cha = jikan.character(malid)
+            ab = cha['about']
+            abo = str(ab)
+            about = abo.replace("\\n", "")
+            image = cha['image_url']
+            url = cha['url']
+            name = cha['name']
+            animeresult = cha['animeography']
+            mangaresult = cha['mangaography']
+            ani = len(animeresult)
+            if ani > 3:
+                ani = 3
+            embed = discord.Embed(title=f'{name}', description=f'{about}'[:1000])
+            embed.set_image(url=f'{image}')
+            embed.add_field(name=':paperclip: **Character MyAnimeList\n**', value=f'[MyAnimeList]({url})')
+            m = 0
+            for i in range(ani):
+                anime = animeresult[m]
+                aname = anime['name']
+                arole = anime['role']
+                aurl = anime['url']
+                embed.add_field(name=':computer: **Anime\n**', value=f'{aname}')
+                embed.add_field(name=':movie_camera: **Role\n**', value=f'{arole}')
+                embed.add_field(name=':paperclip: **Anime MyAnimeList\n**', value=f'[MyAnimeList]({aurl})')
+                m += 1
+            manga = mangaresult[0]
+            maname = manga['name']
+            maurl = manga['url']
+            embed.add_field(name=':book: **Manga\n**', value=f'{maname}')
+            embed.add_field(name=':paperclip: **Manga MyAnimeList\n**', value=f'[MyAnimeList]({maurl})')
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)
+                break
+
+        await message.remove_reaction(u"\u27A1", user)
+        await message.remove_reaction(u"\u274C", user)      
+        await asyncio.sleep(60)
+        await message.delete()
+
+
+
+
+
+
+
+
+
+
+
 
 
                                          #Movies & TV Series
@@ -2674,7 +2763,7 @@ async def movie(ctx, *, nam=None):
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
                 search = tmdb.Search()
                 response = search.movie(query=name)
-                message = await ctx.send('‎')
+                message = await ctx.send('Searching...')
                 for s in search.results:
                     title = s['title']
                     thumbnail = s['poster_path']
@@ -2708,23 +2797,28 @@ async def movie(ctx, *, nam=None):
                         user = bot.user
                         await message.remove_reaction(u"\u27A1", user)
                         await message.remove_reaction(u"\u274C", user)
-                        await asyncio.sleep(60)
-                        await message.delete()
-                        break
+                        
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)      
+                await asyncio.sleep(60)
+                await message.delete()
 
+
+
+                    
 
 @bot.command()
 async def movieimage(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send(".movie name")
+                await ctx.send(".movieimage name")
             elif nam is not None:
                 name = str(nam)
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
                 search = tmdb.Search()
                 response = search.movie(query=name)
-                message = await ctx.send('‎')
+                message = await ctx.send('Searching...')
                 for s in search.results:
                     thumbnail = s['poster_path']
                     link = s['id']
@@ -2751,9 +2845,11 @@ async def movieimage(ctx, *, nam=None):
                         user = bot.user
                         await message.remove_reaction(u"\u27A1", user)
                         await message.remove_reaction(u"\u274C", user)
-                        await asyncio.sleep(60)
-                        await message.delete()
-                        break
+                
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)      
+                await asyncio.sleep(60)
+                await message.delete()
 
 
 @bot.command()
@@ -2761,13 +2857,13 @@ async def series(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send(".movie name")
+                await ctx.send(".series name")
             elif nam is not None:
                 name = str(nam)
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
                 search = tmdb.Search()
                 response = search.tv(query=name)
-                message = await ctx.send('‎')
+                message = await ctx.send('Searching...')
                 for s in search.results:
                     title = s['original_name']
                     thumbnail = s['poster_path']
@@ -2799,9 +2895,11 @@ async def series(ctx, *, nam=None):
                         user = bot.user
                         await message.remove_reaction(u"\u27A1", user)
                         await message.remove_reaction(u"\u274C", user)
-                        await asyncio.sleep(60)
-                        await message.delete()
-                        break
+                
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)      
+                await asyncio.sleep(60)
+                await message.delete()
 
 
 

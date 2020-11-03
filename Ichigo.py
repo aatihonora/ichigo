@@ -3106,6 +3106,106 @@ async def series(ctx, *, nam=None):
 
 
 
+@bot.command()
+async def trending(ctx, *, nam=None):
+    channels = ["📽┃series-movie-chat"]
+    if str(ctx.channel) in channels:
+            if nam is None:
+                await ctx.send('.trending series or .trending movies')
+            name = str(nam)
+            if name == 'movies':
+                tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
+                search = tmdb.Trending()
+                mov = search.info(media_type=name, time_window='week')
+                movies = mov['results']
+                movi = len(movies)
+                message = await ctx.send('Searching...')
+                m = 0
+                for s in range(movi):
+                    s = movies[m]
+                    title = s['original_name']
+                    thumbnail = s['poster_path']
+                    link = s['id']
+                    votes = s['vote_count']
+                    rating = s['vote_average']
+                    embed = discord.Embed()
+                    embed.add_field(name=s['original_name'], value=s['overview'][:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
+                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['first_air_date'])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')
+                    embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
+                    await message.edit(embed=embed)
+                    m += 1
+                    await message.add_reaction(u"\u27A1")
+                    await message.add_reaction(u"\u274C")
+                    emote = [u"\u27A1", u"\u274C"]
+                    try:
+                        def check(reaction, user):
+                            return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                        if str(reaction) == u"\u27A1":
+                            await message.remove_reaction(u"\u27A1", user)
+                            continue
+                        elif str(reaction) == u"\u274C":
+                            await message.delete()
+                            return
+                    except asyncio.TimeoutError:
+                        user = bot.user
+                        await message.remove_reaction(u"\u27A1", user)
+                        await message.remove_reaction(u"\u274C", user)
+                
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)      
+                await asyncio.sleep(60)
+                await message.delete()
+
+            elif name == 'series':
+                name = str(nam)
+                tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
+                search = tmdb.Trending1()
+                mov = search.info(media_type=name, time_window='week')
+                movies = mov['results']
+                movi = len(movies)
+                message = await ctx.send('Searching...')
+                m = 0
+                for s in range(movi):
+                    s = movies[m]
+                    title = s['original_name']
+                    thumbnail = s['poster_path']
+                    link = s['id']
+                    votes = s['vote_count']
+                    rating = s['vote_average']
+                    embed = discord.Embed()
+                    embed.add_field(name=s['original_name'], value=s['overview'][:1000])
+                    embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
+                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['first_air_date'])
+                    embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')
+                    embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
+                    await message.edit(embed=embed)
+                    m += 1
+                    await message.add_reaction(u"\u27A1")
+                    await message.add_reaction(u"\u274C")
+                    emote = [u"\u27A1", u"\u274C"]
+                    try:
+                        def check(reaction, user):
+                            return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                        if str(reaction) == u"\u27A1":
+                            await message.remove_reaction(u"\u27A1", user)
+                            continue
+                        elif str(reaction) == u"\u274C":
+                            await message.delete()
+                            return
+                    except asyncio.TimeoutError:
+                        user = bot.user
+                        await message.remove_reaction(u"\u27A1", user)
+                        await message.remove_reaction(u"\u274C", user)
+                
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)      
+                await asyncio.sleep(60)
+                await message.delete()
+
 
 
                                           #Games & Fun

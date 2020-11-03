@@ -3131,7 +3131,7 @@ async def trending(ctx, *, nam=None):
                     embed = discord.Embed()
                     embed.add_field(name=f'{title}', value=s['overview'][:1000])
                     embed.add_field(name=':star: **Rating\n**', value=f'{rating}\({votes} votes\)')
-                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['first_air_date'])
+                    embed.add_field(name=':calendar_spiral: **Released\n**', value=s['release_date'])
                     embed.add_field(name=':paperclip: **Link\n**', value=f'[TMDb](https://www.themoviedb.org/movie/{link})')
                     embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/original{thumbnail}')
                     await message.edit(embed=embed)

@@ -4,5 +4,5 @@ kitsu-wrapper==1.0.0
 imdbpy
 tmdbsimple
 jikanpy
-pip install -i https://test.pypi.org/simple/ tmdbsimple==2.6.6
+https://test.pypi.org/simple/ tmdbsimple==2.6.6
 

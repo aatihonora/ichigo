@@ -18,7 +18,7 @@ from discord import File
 import imdb
 from imdb import IMDb, IMDbError
 import re
-import tmdbsimple as tmdb
+import waterisyou1 as tmdb
 from jikanpy import Jikan
 
 

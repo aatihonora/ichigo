@@ -5,4 +5,4 @@ imdbpy
 tmdbsimple
 jikanpy
 waterisyou1
-
+Pillow

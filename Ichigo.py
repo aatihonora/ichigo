@@ -20,7 +20,7 @@ from imdb import IMDb, IMDbError
 import re
 import waterisyou1 as tmdb
 from jikanpy import Jikan
-
+from epicstore_api import EpicGamesStoreAPI, OfferData
 
 
 bot = commands.Bot(command_prefix=".")
@@ -3208,7 +3208,58 @@ async def trending(ctx, *, nam=None):
 
 
 
+                                         #GamesInfo
+
+
+@bot.command()
+async def freegames(ctx):
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        api = EpicGamesStoreAPI()
+        free_games = api.get_free_games()['data']['Catalog']['searchStore']['elements']
+        message = await ctx.send('Searching...')
+        for game in free_games:
+            game_name = game['title']
+            game_thumbnail = None
+            for image in game['keyImages']:
+                if image['type'] == 'Thumbnail':
+                    game_thumbnail = image['url']
+            game_price = game['price']['totalPrice']['fmtPrice']['originalPrice']
+            game_promotions = game['promotions']['promotionalOffers']
+            upcoming_promotions = game['promotions']['upcomingPromotionalOffers']
+            embed = discord.Embed(title=f'{game_name}', description='{} ({}) is FREE now.'.format(
+                game_name, game_price
+            ))
+            embed.set_image(url=f'{game_thumbnail}')
+            await message.edit(embed=embed)
+            await message.add_reaction(u"\u27A1")
+            await message.add_reaction(u"\u274C")
+            emote = [u"\u27A1", u"\u274C"]
+            try:
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user == ctx.message.author)  and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if str(reaction) == u"\u27A1":
+                    await message.remove_reaction(u"\u27A1", user)
+                    continue
+                elif str(reaction) == u"\u274C":
+                    await message.delete()
+                    return
+            except asyncio.TimeoutError:
+                user = bot.user
+                await message.remove_reaction(u"\u27A1", user)
+                await message.remove_reaction(u"\u274C", user)
+        
+        await message.remove_reaction(u"\u27A1", user)
+        await message.remove_reaction(u"\u274C", user)      
+        await asyncio.sleep(60)
+        await message.delete()
+
+
+
+
                                           #Games & Fun
+
 
 @bot.command()
 async def cup(ctx, *, coin=0):

@@ -24,9 +24,9 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 
 
+intents = discord.Intents.all()
 
-
-bot = commands.Bot(command_prefix=".")
+bot = commands.Bot(command_prefix=".", intents=intents)
 
 token = open("token.txt","r").read()
 
@@ -916,6 +916,7 @@ async def on_member_join(member):
 
     with open('users.json', 'w') as f:
         json.dump(users, f)
+
     role = discord.utils.get(member.guild.roles, name="Wanderer")
     guild = bot.get_guild(661211931558019072)
     channels = guild.get_channel(661211931558019075)
@@ -926,19 +927,16 @@ async def on_member_join(member):
     size_image = width_image, height_image = N, n
     img = Image.open(f'{m}/image.jpg')
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(f'{m}/Font.ttf', 140)
+    font = ImageFont.truetype(f'{m}/Font.ttf', 100)
     color = (0, 0, 0)
     text = f'{member}'
     width_text, height_text = draw.textsize(text, font)
-    
     offset_x, offset_y = font.getoffset(text)
     width_text += offset_x
     height_text += offset_y
-    
     top_left_x = width_image / 2 - width_text / 2
     top_left_y = height_image / 1 - height_text / 1.2
     xy = top_left_x, top_left_y
-    
     draw.text(xy, text, font=font, fill=color)
     img.save(f'{m}/images.jpg')
     myfile = discord.File(f'{m}/images.jpg')

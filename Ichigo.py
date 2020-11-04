@@ -23,6 +23,9 @@ from jikanpy import Jikan
 from epicstore_api import EpicGamesStoreAPI, OfferData
 
 
+
+
+
 bot = commands.Bot(command_prefix=".")
 
 token = open("token.txt","r").read()
@@ -915,8 +918,29 @@ async def on_member_join(member):
         json.dump(users, f)
     role = discord.utils.get(member.guild.roles, name="Wanderer")
     await member.add_roles(role)
-    e = discord.Embed()
-    e.set_image(url="https://cdn.discordapp.com/attachments/686941615490596922/686941777248124940/Underworld.jpg")
+    m = os.getcwd()
+    N = 1920
+    n = 1080
+    size_image = width_image, height_image = N, n
+    img = Image.open(f'{m}/image.jpg')
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype(f'{m}/font.ttf', 140)
+    color = (0, 0, 0)
+    text = f'{member}'
+    width_text, height_text = draw.textsize(text, font)
+    
+    offset_x, offset_y = font.getoffset(text)
+    width_text += offset_x
+    height_text += offset_y
+    
+    top_left_x = width_image / 2 - width_text / 2
+    top_left_y = height_image / 1 - height_text / 1.2
+    xy = top_left_x, top_left_y
+    
+    draw.text(xy, text, font=font, fill=color)
+    img.save(f'{m}/images.jpg')
+    myfile = discord.File(f'{m}/images.jpg')
+    await ctx.send(f"""Welcome to the **{guild.name}** {member.mention} """ ,file=myfile)
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(767016027015610389)
     embed = discord.Embed(title='Joined', description=f'{member.mention} has joined the server')
@@ -3254,8 +3278,6 @@ async def freegames(ctx):
         await message.remove_reaction(u"\u274C", user)      
         await asyncio.sleep(60)
         await message.delete()
-
-
 
 
                                           #Games & Fun

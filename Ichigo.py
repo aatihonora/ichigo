@@ -916,6 +916,8 @@ async def on_member_join(member):
     with open('users.json', 'w') as f:
         json.dump(users, f)
     role = discord.utils.get(member.guild.roles, name="Wanderer")
+    guild = bot.get_guild(661211931558019072)
+    channels = guild.get_channel(661211931558019075)
     await member.add_roles(role)
     m = os.getcwd()
     N = 1920
@@ -939,7 +941,7 @@ async def on_member_join(member):
     draw.text(xy, text, font=font, fill=color)
     img.save(f'{m}/images.jpg')
     myfile = discord.File(f'{m}/images.jpg')
-    await ctx.send(f"""Welcome to the **{guild.name}** {member.mention} """ ,file=myfile)
+    await channels.send(f"""Welcome to the **{guild.name}** {member.mention} """ ,file=myfile)
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(767016027015610389)
     embed = discord.Embed(title='Joined', description=f'{member.mention} has joined the server')
@@ -950,9 +952,6 @@ async def on_member_join(member):
     embed.set_thumbnail(url=f'{avt}')
     embed.set_footer(text=f'{member.id}')
     await channel.send(embed=embed)
-    for channel in member.guild.channels:
-        if str(channel) == "⚔┃wanderers-guild":
-            await channel.send(f"""Welcome to the **{guild.name}** {member.mention} """, embed=e)
 
 
 @bot.event

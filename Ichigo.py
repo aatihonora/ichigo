@@ -20,7 +20,6 @@ from imdb import IMDb, IMDbError
 import re
 import waterisyou1 as tmdb
 from jikanpy import Jikan
-from epicstore_api import EpicGamesStoreAPI, OfferData
 
 
 

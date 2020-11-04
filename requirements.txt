@@ -5,7 +5,4 @@ imdbpy
 tmdbsimple
 jikanpy
 waterisyou1
-requests
-epicstore-api
-
 

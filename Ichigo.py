@@ -920,12 +920,8 @@ async def on_member_join(member):
     role = discord.utils.get(member.guild.roles, name="Wanderer")
     guild = bot.get_guild(661211931558019072)
     channels = guild.get_channel(661211931558019075)
+    ch = guild.get_channel(773803053047873557)
     await member.add_roles(role)
-    import os
-    files = [f for f in os.listdir('.') if os.path.isfile(f)]
-    for f in files:
-        print(files)
-    m = os.getcwd()
     N = 1920
     n = 1080
     size_image = width_image, height_image = N, n
@@ -944,7 +940,7 @@ async def on_member_join(member):
     draw.text(xy, text, font=font, fill=color)
     img.save(f'./images.jpg')
     myfile = discord.File(f'./images.jpg')
-    await channels.send(f"""Welcome to the **{guild.name}** {member.mention} """ ,file=myfile)
+    await channels.send(f"""Welcome to the **{guild.name}** {member.mention} and don't forget to read the rules {ch.mention} """ ,file=myfile)
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(767016027015610389)
     embed = discord.Embed(title='Joined', description=f'{member.mention} has joined the server')

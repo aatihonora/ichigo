@@ -927,7 +927,7 @@ async def on_member_join(member):
     size_image = width_image, height_image = N, n
     img = Image.open(f'./image.jpg')
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(f'{m}/Font.ttf', 100)
+    font = ImageFont.truetype(f'./Font.ttf', 100)
     color = (0, 0, 0)
     text = f'{member}'
     width_text, height_text = draw.textsize(text, font)

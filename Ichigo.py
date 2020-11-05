@@ -925,7 +925,7 @@ async def on_member_join(member):
     N = 1920
     n = 1080
     size_image = width_image, height_image = N, n
-    img = Image.open(f'{m}/image.jpg')
+    img = Image.open(f'./image.jpg')
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(f'{m}/Font.ttf', 100)
     color = (0, 0, 0)
@@ -938,8 +938,8 @@ async def on_member_join(member):
     top_left_y = height_image / 1 - height_text / 1.2
     xy = top_left_x, top_left_y
     draw.text(xy, text, font=font, fill=color)
-    img.save(f'{m}/images.jpg')
-    myfile = discord.File(f'{m}/images.jpg')
+    img.save(f'./images.jpg')
+    myfile = discord.File(f'./images.jpg')
     await channels.send(f"""Welcome to the **{guild.name}** {member.mention} """ ,file=myfile)
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(767016027015610389)

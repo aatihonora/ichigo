@@ -921,6 +921,10 @@ async def on_member_join(member):
     guild = bot.get_guild(661211931558019072)
     channels = guild.get_channel(661211931558019075)
     await member.add_roles(role)
+    import os
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    for f in files:
+        print(files)
     m = os.getcwd()
     N = 1920
     n = 1080

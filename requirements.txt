@@ -6,4 +6,3 @@ tmdbsimple
 jikanpy
 waterisyou1
 Pillow
-epicstore-api

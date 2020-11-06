@@ -22,6 +22,8 @@ import waterisyou1 as tmdb
 from jikanpy import Jikan
 from PIL import Image, ImageDraw, ImageFont
 import os
+from epicstore_api import EpicGamesStoreAPI
+
 
 
 intents = discord.Intents.all()

@@ -1,3 +1,4 @@
+python==3.8.6
 discord.py==1.5.1
 mal-api==0.3.0
 kitsu-wrapper==1.0.0
@@ -6,3 +7,4 @@ tmdbsimple
 jikanpy
 waterisyou1
 Pillow
+epicstore-api

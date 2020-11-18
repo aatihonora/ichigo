@@ -317,7 +317,10 @@ async def on_voice_state_update(member, before, after):
         x = {f'{member.id} : '}
         if after.channel.name == 'Join To Make New Room':
             cat = guild.get_channel(768363165817110558)
-            new = await guild.create_voice_channel(name=f'{member.name}\'s Room', category=cat)
+            overwrites = {
+                member: discord.PermissionOverwrite(move_members=True)
+            }
+            new = await guild.create_voice_channel(name=f'{member.name}\'s Room', category=cat, overwrites=overwrites, user_limit=2)
             await member.move_to(new)
     if before.channel is not None and member.nick != 'Jockie':
         category = 768363165817110558
@@ -330,6 +333,37 @@ async def on_voice_state_update(member, before, after):
          
 
                                         #STAFF COMMANDS
+                                        
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def lock(ctx):
+    guild = bot.get_guild(661211931558019072)
+    wanderer = discord.utils.get(ctx.guild.roles, name="Wanderer")
+    role = ctx.guild.default_role
+    overwrite = discord.PermissionOverwrite()
+    overwrite.send_messages = False
+    overwrite.read_messages = True
+    overwrite.read_message_history = True
+    channel = ctx.channel
+    await channel.set_permissions(wanderer, overwrite=overwrite)
+    await channel.set_permissions(role, overwrite=overwrite)
+    await ctx.send('Channel has been successfully locked')
+
+    
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def unlock(ctx):
+    guild = bot.get_guild(661211931558019072)
+    wanderer = discord.utils.get(ctx.guild.roles, name="Wanderer")
+    role = ctx.guild.default_role
+    overwrite = discord.PermissionOverwrite()
+    overwrite.send_messages = True
+    overwrite.read_messages = True
+    overwrite.read_message_history = True
+    channel = ctx.channel
+    await channel.set_permissions(wanderer, overwrite=overwrite)
+    await channel.set_permissions(role, overwrite=overwrite)
+    await ctx.send('Channel has been successfully unlocked')
 
 
 @bot.command()
@@ -434,7 +468,6 @@ async def leaderboard(ctx):
             if number+1 > 2:
                 break 
         embed = discord.Embed(title='Rankings', description=f'{message}')
-        embed.set_footer(text='gae | you')
         channel = guild.get_channel(769319830461349978)
         await ctx.message.delete()
         await channel.send(embed=embed)
@@ -588,13 +621,13 @@ async def event(ctx, user: discord.Member = None):
 async def staff(ctx):
     channels = ["🏛┃council"]
     if str(ctx.channel) in channels:
-        embed = discord.Embed(title="Staff Commands", description="Here are all the staff commands \n \n \n__**warn/w**__ = \"Warns user\"\n"
-                                                                        "__**kick/k**__ = "
-                                                                        "\"Kicks user\" \n __**mute/m**__ = \""
-                                                                        "Mutes the user\" \n __**unmute/um**__ = \"Unmutes the user\" \n"
-                                                                        "__**mods**__ = \"Shows all the moderation that happen to the user\"\n"
-                                                                        "__**move**__ = \"Moves users from the vc you are in to another vc\"\n"
-                                                                        "__**rename**__ = \"Changes user\'s nickname\"")
+        embed = discord.Embed(title="Staff Commands", description="Here are all the staff commands \n \n \n__**.warn/w**__ = \"Warns user\"\n"
+                                                                        "__**.kick/k**__ = "
+                                                                        "\"Kicks user\" \n __**.mute/m**__ = \""
+                                                                        "Mutes the user\" \n __**.unmute/um**__ = \"Unmutes the user\" \n"
+                                                                        "__**.mods**__ = \"Shows all the moderation that happen to the user\"\n"
+                                                                        "__**.move**__ = \"Moves users from the vc you are in to another vc\"\n"
+                                                                        "__**.rename**__ = \"Changes user\'s nickname\"")
         await ctx.send(content=None, embed=embed)
         return
 
@@ -604,13 +637,15 @@ async def staff(ctx):
 async def admin(ctx):
     channels = ["🏛┃council"]
     if str(ctx.channel) in channels:
-        embed = discord.Embed(title="Admin Commands", description="Here are all the admin commands \n \n \n__**ban/b**__ = "
-                                                                        "\"Bans user\" \n__**unban/ub**__ = \""
-                                                                        "Unbans user\" \n__**serverban/sban**__ = \"Server ban means a non member gets ban for that you need their id\"\n"
-                                                                        "__**transfer**__ =\"Gives user money\"\n"
-                                                                        "__**take**__ =\"Takes user money\"\n"
-                                                                        "__**filter**__ =\"Filters the word\"\n"
-                                                                        "__**clear**__ = \"Deletes 100 recent messages this command should only be used after raids\"")
+        embed = discord.Embed(title="Admin Commands", description="Here are all the admin commands \n \n \n__**.ban/b**__ = "
+                                                                        "\"Bans user\" \n__**.unban/ub**__ = \""
+                                                                        "Unbans user\" \n__**.serverban/sban**__ = \"Server ban means a non member gets ban for that you need their id\"\n"
+                                                                        "__**.transfer**__ =\"Gives user money\"\n"
+                                                                        "__**.take**__ =\"Takes user money\"\n"
+                                                                        "__**.filter**__ =\"Filters the word\"\n"
+                                                                        "__**.lock**__ =\"Should only be used when a channel gets raided\"\n"
+                                                                        "__**.unlock**__ =\"To reset the permissions\"\n"
+                                                                        "__**.clear**__ = \"Deletes 100 recent messages this command should only be used after raids\"")
         await ctx.send(content=None, embed=embed)
         return
 

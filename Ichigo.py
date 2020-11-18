@@ -178,38 +178,42 @@ async def time_check():
     channel = guild.get_channel(661211931558019075)
     global send_time
     while not bot.is_closed():
-        d = datetime.datetime.now()
-        now = d.strftime('%I:%M %p')
-        if now == send_time:
-            embed = discord.Embed(title='Drop', description=':gift: react to get it')
-            message = await channel.send(embed=embed)
-            await message.add_reaction(u"\U0001F381")
-            emote = [u"\U0001F381"]
-            def check(reaction, user):
-                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-            reaction, user = await bot.wait_for('reaction_add', check=check)                
-            if str(reaction) == u"\U0001F381":                                                              
-                await message.delete()
-                gift = random.randint(500, 3000)
-                await channel.send(f':tada: {user.mention} got {gift} :coin:')
-                with open('users.json', 'r') as i:
-                    users = json.load(i)
-                    
-                coins = users[f'{user.id}']['coins'] 
-                e = int(coins)
-                a = (e+gift)
-                users[f'{user.id}']['coins'] = a
+        try:
+            d = datetime.datetime.now()
+            now = d.strftime('%I:%M %p')
+            if now == send_time:
+                embed = discord.Embed(title='Drop', description=':gift: react to get it')
+                message = await channel.send(embed=embed)
+                await message.add_reaction(u"\U0001F381")
+                emote = [u"\U0001F381"]
+                def check(reaction, user):
+                    return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)                
+                if str(reaction) == u"\U0001F381":                                                              
+                    await message.delete()
+                    gift = random.randint(500, 3000)
+                    await channel.send(f':tada: {user.mention} got {gift} :coin:')
+                    with open('users.json', 'r') as i:
+                        users = json.load(i)
+                        
+                    coins = users[f'{user.id}']['coins'] 
+                    e = int(coins)
+                    a = (e+gift)
+                    users[f'{user.id}']['coins'] = a
 
-                with open('users.json', 'w') as i:
-                    json.dump(users, i)
+                    with open('users.json', 'w') as i:
+                        json.dump(users, i)
 
-                times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
-                send_time = random.choice(times)
-            time=86400
-        else:
-            time=1
-        await asyncio.sleep(time)
+                    times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
+                    send_time = random.choice(times)
+                time=86400
+            else:
+                time=1
+            await asyncio.sleep(time)
+        except asyncio.TimeoutError:
+            await message.delete()
 
+        
 
 @bot.event
 async def on_message_edit(before, after):
@@ -324,10 +328,58 @@ async def on_voice_state_update(member, before, after):
                 if len(before.channel.members) == 0:
                     await before.channel.delete()
          
-                
-
 
                                         #STAFF COMMANDS
+
+
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def transfer(ctx, member: discord.Member = None, *, coin=0):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        if member is None:
+            embed = discord.Embed(title='Usage', description='.transfer @name amount or .transfer userid amount')
+            await ctx.send(embed=embed)
+            return
+        else:
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a+coin
+            users[f'{member.id}']['coins'] = c
+
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+
+            ee = discord.Embed(description=f'{coin} :coin: added in the {member.mention}\'s account')
+            await ctx.send(embed=ee)
+
+            
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def take(ctx, member: discord.Member = None, *, coin=0):
+    guild = bot.get_guild(661211931558019072)
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        if member is None:
+            embed = discord.Embed(title='Usage', description='.take @name amount or .take userid amount')
+            await ctx.send(embed=embed)
+            return
+        else:
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-coin
+            users[f'{member.id}']['coins'] = c
+
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+
+            ee = discord.Embed(description=f'{coin} :coin: taken from {member.mention}')            
+            await ctx.send(embed=ee)
 
 
 @bot.command()
@@ -428,6 +480,7 @@ async def filter(ctx, *, badword=None):
         
 
 @bot.command(aliases=['ufile'])
+@commands.has_role("Inn Keeper")
 async def datafile(ctx, *, name=None):
     channels = ["data"]
     if str(ctx.message.channel) in channels:
@@ -446,7 +499,7 @@ async def datafile(ctx, *, name=None):
         
 
 @bot.command()
-@commands.has_role("Inn Server")
+@commands.has_role("Inn Keeper")
 async def addav(ctx, member: discord.Member = None, *,  bg=None):
     if bg is None:
         embed = discord.Embed(title='Usage', description='.addav @user urlofav\nurl must have .jpg or .png or .gif in the extension')
@@ -535,10 +588,29 @@ async def event(ctx, user: discord.Member = None):
 async def staff(ctx):
     channels = ["🏛┃council"]
     if str(ctx.channel) in channels:
-        await ctx.message.delete()
-        embed = discord.Embed(title="Staff Commands", description="Here are all the staff commands \n \n \n __**kick/k**__ = "
+        embed = discord.Embed(title="Staff Commands", description="Here are all the staff commands \n \n \n__**warn/w**__ = \"Warns user\"\n"
+                                                                        "__**kick/k**__ = "
                                                                         "\"Kicks user\" \n __**mute/m**__ = \""
-                                                                        "Mutes the user\" \n __**unmute/um**__ = \"Unmutes the user\" \n")
+                                                                        "Mutes the user\" \n __**unmute/um**__ = \"Unmutes the user\" \n"
+                                                                        "__**mods**__ = \"Shows all the moderation that happen to the user\"\n"
+                                                                        "__**move**__ = \"Moves users from the vc you are in to another vc\"\n"
+                                                                        "__**rename**__ = \"Changes user\'s nickname\"")
+        await ctx.send(content=None, embed=embed)
+        return
+
+
+@bot.command()
+@commands.has_role("Inn Keeper")
+async def admin(ctx):
+    channels = ["🏛┃council"]
+    if str(ctx.channel) in channels:
+        embed = discord.Embed(title="Admin Commands", description="Here are all the admin commands \n \n \n__**ban/b**__ = "
+                                                                        "\"Bans user\" \n__**unban/ub**__ = \""
+                                                                        "Unbans user\" \n__**serverban/sban**__ = \"Server ban means a non member gets ban for that you need their id\"\n"
+                                                                        "__**transfer**__ =\"Gives user money\"\n"
+                                                                        "__**take**__ =\"Takes user money\"\n"
+                                                                        "__**filter**__ =\"Filters the word\"\n"
+                                                                        "__**clear**__ = \"Deletes 100 recent messages this command should only be used after raids\"")
         await ctx.send(content=None, embed=embed)
         return
 
@@ -994,35 +1066,16 @@ async def suggest(ctx):
             await ctx.send('Timeout try again')
 
 
-
-
 @bot.command()
 async def help(ctx):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
-        embed = discord.Embed(title="Bot Commands", description="Here are all the bot commands \n \n**.ping** = "
-                                                                "\"Replies with latency\" \n**.pfp** = \""
-                                                                "Shows user\'s profile picture\" \n**.userinfo** = \"Shows "
-                                                                "user\'s info\" \n**.serverinfo** = \"Shows server info\" \n"
-                                                                "**.profile**= \"Shows user\'s server profile \"\n"
-                                                                "**.editinfo**= \"For changing customizable info\"\n"
-                                                                "**.avatars** = \"Sends pictures to choose an avatar for the profile\"\n"
-                                                                "**.coins** = \"Shows how much coins you have\"\n"
-                                                                "**.taskdone** = \"You will earn 1000 coins you can only use it per day\"\n"
-                                                                "**.buyrole** = \"To buy available roles to get the list of available role do .roles\"\n" 
-                                                                "**.roles** = \"Shows all buyable roles\"\n"
-                                                                "**.kiss** = \"Sends kiss gif\"\n"
-                                                                "**.hug** = \"Sends hug gif\"\n"
-                                                                "**.fist** = \"Sends fist bump gif\"\n"
-                                                                "**.slap** = \"Sends slap gif\"\n"
-                                                                "**.suggest** = \"You can send suggestions through this command\"\n"
-                                                                "**.cup** = \"A game of cups you have to find the coin\"\n"
-                                                                "**.toss** = \"Tosses the coin\"\n"
-                                                                "**.dice** = \"Game of dice where you need two matching dice and the third one will be the score\"\n"
-                                                                "**.bj** = \"BlackJack you need to keep the score under or equal to 21\"\n"
-                                                                "**.war** = \"War is a card game where you call high or low card if you get it right you will win\"\n"
-                                                                "**.give** = \"Transfer coins to other user\"\n"
-                                                                , colour=0x101010)
+        embed = discord.Embed(title="Bot Commands", description="Here are all the bot commands" , colour=0x101010)
+        embed.add_field(name='General Commands', value='`.coins`  `.daily`  `.kiss`  `.hug`  `.fist`  `.slap`')       
+        embed.add_field(name='User Commands', value='`.profile`  `.editinfo`  `.userinfo`  `.pfp`  `.give`  `.roles`  `.buyrole`')
+        embed.add_field(name='Server Commands', value='`.ping`  `.serverinfo`  `.suggest`')
+        embed.add_field(name='Weeb/Nerd Commands', value='`.mal`  `.anime`  `.manga`  `.character`  `.seasonal`  `.upcominganimes`  `.movie`  `.series`  `.trending`')
+        embed.add_field(name='Fun/Recreation Commands', value='`.cup`  `.toss`  `.dice`  `.bj`  `.war`')
         await ctx.send(content=None, embed=embed)
         return
 
@@ -1170,7 +1223,8 @@ async def editinfo(ctx, *, info = None):
     channels = ["🤖┃machinery"]
     if str(ctx.channel) in channels:
         if info is None:
-            await ctx.send("Please write something you like with the command")
+            embed = discord.Embed(title='Usage', description='.editinfo info')
+            await ctx.send(embed=embed)
             return
         else:
             user = discord.Member
@@ -1201,171 +1255,7 @@ async def edit(users, user, info):
         await channel.send('Edited')
     else:
         return
-
-
-@bot.command()
-async def avatars(message):
-    channels = ["🤖┃machinery"]
-    if str(message.channel) in channels:
-        user = message.author
-        uu = user.id
-        embed = discord.Embed(title="**Spike Spiegel**", colour=0x4B0082)
-        embed.set_image(url="https://i.imgur.com/Xc94Jr6.png")
-        message = await message.channel.send(embed=embed)
-        await message.add_reaction(u"\u2705")
-        await message.add_reaction(u"\u274C")
-        emote = [u"\u274C", u"\u2705"]
-        while True:
-            def check(reaction, user):
-                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-            reaction, user = await bot.wait_for('reaction_add', check=check)
-            if str(reaction) == u"\u274C":
-                await message.remove_reaction(u"\u274C", user)
-                embed = discord.Embed(title="**Angelo Lagusa**", colour=0x4B0082)
-                embed.set_image(url="https://i.imgur.com/E6pmTsg.png")
-                await message.edit(embed=embed)
-                await message.add_reaction(u"\u2705")
-                await message.add_reaction(u"\u274C")
-                emote = [u"\u274C", u"\u2705"]
-                while True:
-                    def check(reaction, user):
-                        return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-                    reaction, user = await bot.wait_for('reaction_add', check=check)
-                    if str(reaction) == u"\u274C":
-                        await message.remove_reaction(u"\u274C", user)
-                        embed = discord.Embed(title="**Kakashi Hatake**", colour=0x4B0082)
-                        embed.set_image(url="https://i.imgur.com/lYzFU4h.png")
-                        await message.edit(embed=embed)
-                        await message.add_reaction(u"\u2705")
-                        await message.add_reaction(u"\u274C")
-                        emote = [u"\u274C", u"\u2705"]
-                        while True:
-                            def check(reaction, user):
-                                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-                            reaction, user = await bot.wait_for('reaction_add', check=check)
-                            if str(reaction) == u"\u274C":
-                                await message.remove_reaction(u"\u274C", user)
-                                embed = discord.Embed(title="**Kagehisa Anotsu**", colour=0x4B0082)
-                                embed.set_image(url="https://i.imgur.com/vRuiLMg.png")
-                                await message.edit(embed=embed)
-                                await message.add_reaction(u"\u2705")
-                                await message.add_reaction(u"\u274C")
-                                emote = [u"\u274C", u"\u2705"]
-                                while True:
-                                    def check(reaction, user):
-                                        return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-                                    reaction, user = await bot.wait_for('reaction_add', check=check)
-                                    if str(reaction) == u"\u274C":
-                                        await message.remove_reaction(u"\u274C", user)
-                                        embed = discord.Embed(title="**Roy Mustang**", colour=0x4B0082)
-                                        embed.set_image(url="https://i.imgur.com/ipNdi7X.png")
-                                        await message.edit(embed=embed)
-                                        await message.add_reaction(u"\u2705")
-                                        await message.add_reaction(u"\u274C")
-                                        emote = [u"\u274C", u"\u2705"]
-                                        while True:
-                                            def check(reaction, user):
-                                                return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-                                            reaction, user = await bot.wait_for('reaction_add', check=check)
-                                            if str(reaction) == u"\u274C":
-                                                await message.remove_reaction(u"\u274C", user)
-                                                embed = discord.Embed(title="**Minato Namikaze**", colour=0x4B0082)
-                                                embed.set_image(url="https://i.imgur.com/CqiDOJj.png")
-                                                await message.edit(embed=embed)
-                                                await message.add_reaction(u"\u2705")
-                                                await message.add_reaction(u"\u274C")
-                                                emote = [u"\u274C", u"\u2705"]
-                                                while True:
-                                                    def check(reaction, user):
-                                                        return (reaction.message.id == message.id) and (user != bot.user) and (str(reaction) in emote)
-                                                    reaction, user = await bot.wait_for('reaction_add', check=check)
-                                                    if str(reaction) == u"\u274C":
-                                                        await message.remove_reaction(u"\u274C", user)
-                                                        guild = bot.get_guild(661211931558019072)
-                                                        channel = guild.get_channel(686918214327861266)
-                                                        await message.delete()
-                                                    elif str(reaction) == u"\u2705":
-                                                        await message.delete()
-                                                        bg = "https://i.imgur.com/CqiDOJj.png"
-                                                        with open('users.json', 'r') as p:
-                                                            users = json.load(p)
-                                                
-                                                        await back(users, user, bg)
-                                                
-                                                        with open('users.json', 'w') as p:
-                                                            json.dump(users, p)
-                                                
-                                                        await message.channel.send('Added')
-                                                        return
-                                            elif str(reaction) == u"\u2705":
-                                                await message.delete()
-                                                bg = "https://i.imgur.com/ipNdi7X.png"
-                                                with open('users.json', 'r') as p:
-                                                    users = json.load(p)
-                                        
-                                                await back(users, user, bg)
-                                        
-                                                with open('users.json', 'w') as p:
-                                                    json.dump(users, p)
-                                        
-                                                await message.channel.send('Added')
-                                                return
-                                    elif str(reaction) == u"\u2705":
-                                        await message.delete()
-                                        bg = "https://i.imgur.com/vRuiLMg.png"
-                                        with open('users.json', 'r') as p:
-                                            users = json.load(p)
-                                
-                                        await back(users, user, bg)
-                                
-                                        with open('users.json', 'w') as p:
-                                            json.dump(users, p)
-                                
-                                        await message.channel.send('Added')
-                                        return
-                            elif str(reaction) == u"\u2705":
-                                await message.delete()
-                                bg = "https://i.imgur.com/lYzFU4h.png"
-                                with open('users.json', 'r') as p:
-                                    users = json.load(p)
-
-                                await back(users, user, bg)
-
-                                with open('users.json', 'w') as p:
-                                    json.dump(users, p)
-
-                                await message.channel.send('Added')
-                                return
-                    elif str(reaction) == u"\u2705":
-                        await message.delete()
-                        bg = "https://i.imgur.com/E6pmTsg.png"
-                        with open('users.json', 'r') as p:
-                            users = json.load(p)
-
-                        await back(users, user, bg)
-
-                        with open('users.json', 'w') as p:
-                            json.dump(users, p)
-
-                        await message.channel.send('Added')
-                        return
-            elif str(reaction) == u"\u2705":
-                await message.delete()
-                bg = "https://i.imgur.com/Xc94Jr6.png"
-                with open('users.json', 'r') as p:
-                    users = json.load(p)
-
-                await back(users, user, bg)
-
-                with open('users.json', 'w') as p:
-                    json.dump(users, p)
-                await message.channel.send('Added')
-                return
-async def back(users, user, bg):
-    if f'{user.id}' in users:
-        users[f'{user.id}']['bg'] = bg
-        return
-
+                                 
 
 @bot.command()
 async def ping(ctx):
@@ -1402,6 +1292,7 @@ async def coins(ctx, member:discord.Member = None):
         coins = users[f'{member.id}']['coins']
         ee = discord.Embed(description=f"{member.mention} has {coins} :coin:")
         await ctx.send(embed=ee)
+
     
 @bot.command(aliases=['daily'])
 @commands.cooldown(1, 86400, type=commands.BucketType.user)
@@ -1510,60 +1401,20 @@ async def buyrole(ctx, *, role = None):
             else:
                 await ctx.send("Wrong role try .roles and remember first letter must be uppercased like \"Survivor\"")
         else:
-            await ctx.send("Use .roles for names")
+            embed = discord.Embed(title='Usage', description='.buyrole Rolename\nTo get role names use .roles')
+            await ctx.send(embed=embed)
+            return
+
 
             
 @bot.command()
 async def roles(ctx):
     embed = discord.Embed()
-    embed.add_field(name="20000 :coin:  Roles\n\n", value="**(1) Survivor**\n"
-                                                        "**(2) Plunderer**\n")
-    embed.add_field(name="365000 :coin: Best Buyable Roles\n\n\n", value="**(1) Pirate**\n")
+    embed.add_field(name="20000 :coin:  Roles\n\n", value="**Survivor**\n"
+                                                        "**Plunderer**\n")
+    embed.add_field(name="365000 :coin: Best Buyable Roles\n\n\n", value="**Pirate**\n")
     await ctx.send(embed=embed)
 
-
-@bot.command()
-async def transfer(ctx, member: discord.Member = None, *, coin=0):
-    guild = bot.get_guild(661211931558019072)
-    channels = ["🤖┃machinery"]
-    if str(ctx.channel) in channels:
-        if member is None:
-            await ctx.send("Member Not Found")
-        else:
-            with open('users.json', 'r') as f:
-                users = json.load(f)
-            coins = users[f'{member.id}']['coins']
-            a = int(coins)
-            c = a+coin
-            users[f'{member.id}']['coins'] = c
-
-            with open('users.json', 'w') as f:
-                json.dump(users, f)
-
-            ee = discord.Embed(description=f'{coin} :coin: added in the {member.mention}\'s account')
-            await ctx.send(embed=ee)
-
-            
-@bot.command()
-async def take(ctx, member: discord.Member = None, *, coin=0):
-    guild = bot.get_guild(661211931558019072)
-    channels = ["🤖┃machinery"]
-    if str(ctx.channel) in channels:
-        if member is None:
-            await ctx.send("Member Not Found")
-        else:
-            with open('users.json', 'r') as f:
-                users = json.load(f)
-            coins = users[f'{member.id}']['coins']
-            a = int(coins)
-            c = a-coin
-            users[f'{member.id}']['coins'] = c
-
-            with open('users.json', 'w') as f:
-                json.dump(users, f)
-
-            ee = discord.Embed(description=f'{coin} :coin: taken from {member.mention}')            
-            await ctx.send(embed=ee)
 
 
 @bot.command()
@@ -1578,7 +1429,9 @@ async def give(ctx, member: discord.Member = None, *, coin=0):
     l = int(coin)
     if str(ctx.channel) in channels:
         if member is None:
-            await ctx.send("Member Not Found")
+            embed = discord.Embed(title='Usage', description='.give @name amount')
+            await ctx.send(embed=embed)
+            return
         elif q < l:
             await ctx.send("Not enough coins")
         elif l == 0:
@@ -1612,7 +1465,8 @@ async def give(ctx, member: discord.Member = None, *, coin=0):
 @commands.cooldown(1, 30, type=commands.BucketType.user)
 async def kiss(ctx, member: discord.Member = None):
     if member is None:
-        await ctx.send('Member Not Found')
+        embed = discord.Embed(title='Usage', description='.kiss @user')
+        await ctx.send(embed=embed)
         return
     else:
         r = ['https://i.imgur.com/ZSVDZwi.gif', 'https://i.imgur.com/50KEH5I.gif', 'https://i.imgur.com/c7tCHMx.gif', 'https://i.imgur.com/pur4RBr.gif', 'https://i.imgur.com/3p77k2o.gif']
@@ -1633,7 +1487,8 @@ async def kiss_error(ctx, error):
 @commands.cooldown(1, 30, type=commands.BucketType.user)
 async def fist(ctx, member: discord.Member = None):
     if member is None:
-        await ctx.send('Member Not Found')
+        embed = discord.Embed(title='Usage', description='.fist @user')
+        await ctx.send(embed=embed)
         return
     else:
         r = ['https://i.imgur.com/WGx1oAd.gif', 'https://i.imgur.com/s2lHMUS.gif', 'https://i.imgur.com/mZhkabt.gif', 'https://i.imgur.com/yNynHm8.gif', 'https://i.imgur.com/W47N0qp.gif']
@@ -1654,7 +1509,8 @@ async def fist_error(ctx, error):
 @commands.cooldown(1, 30, type=commands.BucketType.user)
 async def hug(ctx, member: discord.Member = None):
     if member is None:
-        await ctx.send('Member Not Found')
+        embed = discord.Embed(title='Usage', description='.hug @user')
+        await ctx.send(embed=embed)
         return
     else:
         r = ['https://i.imgur.com/tmH9kAa.gif', 'https://i.imgur.com/h0npvMN.gif', 'https://i.imgur.com/KdlCRFZ.gif', 'https://i.imgur.com/VqXqqbW.gif', 'https://i.imgur.com/wanveQs.gif']
@@ -1675,7 +1531,8 @@ async def hug_error(ctx, error):
 @commands.cooldown(1, 30, type=commands.BucketType.user)
 async def slap(ctx, member: discord.Member = None):
     if member is None:
-        await ctx.send('Member Not Found')
+        embed = discord.Embed(title='Usage', description='.slap @user')
+        await ctx.send(embed=embed)
         return
     else:
         r = ['https://i.imgur.com/vU5CPxB.gif', 'https://i.imgur.com/MMGztMD.gif', 'https://i.imgur.com/J3exWoi.gif', 'https://i.imgur.com/c0ImF3g.gif', 'https://i.imgur.com/XSU83EU.gif']
@@ -1702,7 +1559,9 @@ async def manime(ctx, *, anim=None):
     channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if anim is None:
-            await ctx.send('Anime not found')
+            embed = discord.Embed(title='Usage', description='.manime name')
+            await ctx.send(embed=embed)
+            return
         else:
             search = AnimeSearch(anim)
             a = f'{search.results[0].mal_id}'
@@ -1805,7 +1664,9 @@ async def manimeost(ctx, *, anim=None):
     channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if anim is None:
-            await ctx.send('Anime not found')
+            embed = discord.Embed(title='Usage', description='.manimeost name')
+            await ctx.send(embed=embed)
+            return
         else:
             search = AnimeSearch(anim)        
             a = f'{search.results[0].mal_id}'
@@ -1829,7 +1690,8 @@ async def anime(ctx, *, query=None):
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
-            await ctx.send('Anime not found')
+            embed = discord.Embed(title='Usage', description='.anime name')
+            await ctx.send(embed=embed)
             return
         client = kitsu.Client()
         entries = await client.search('anime', query, limit=10)
@@ -1920,7 +1782,9 @@ async def mmanga(ctx, *, manga=None):
     channels = ["🏮┃anime-manga-chat"]
     if str(ctx.channel) in channels:
         if manga is None:
-            await ctx.send('Manga not found')
+            embed = discord.Embed(title='Usage', description='.mmanga name')
+            await ctx.send(embed=embed)
+            return
         else:
             search = MangaSearch(manga)
             a = f'{search.results[0].mal_id}'
@@ -1958,7 +1822,8 @@ async def manga(ctx, *, query=None):
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
-            await ctx.send('Manga not found')
+            embed = discord.Embed(title='Usage', description='.manga name')
+            await ctx.send(embed=embed)
             return
         client = kitsu.Client()
         entries = await client.search('manga', query, limit=10)
@@ -2030,7 +1895,8 @@ async def character(ctx, *, query=None):
     member = ctx.message.author
     if str(ctx.channel) in channels:
         if query is None:
-            await ctx.send('Manga not found')
+            embed = discord.Embed(title='Usage', description='.character name')
+            await ctx.send(embed=embed)
             return
         jikan = Jikan()
         b = jikan.search('character', f'{query}')
@@ -2318,7 +2184,9 @@ async def tv(ctx, *, name=None):
     if str(ctx.channel) in channels:
         try:
             if name is None:
-                await ctx.send(".movie name")
+                embed = discord.Embed(title='Usage', description='.tv name, you can name any movie or tv series')
+                await ctx.send(embed=embed)
+                return
             elif name is not None:
                 ia = imdb.IMDb()
                 a = str(name)
@@ -2982,7 +2850,9 @@ async def movie(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send(".movie name")
+                embed = discord.Embed(title='Usage', description='.movie name')
+                await ctx.send(embed=embed)
+                return
             elif nam is not None:
                 name = str(nam)
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
@@ -3037,7 +2907,9 @@ async def movieimage(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send(".movieimage name")
+                embed = discord.Embed(title='Usage', description='.movieimage name')
+                await ctx.send(embed=embed)
+                return
             elif nam is not None:
                 name = str(nam)
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
@@ -3082,7 +2954,9 @@ async def series(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send(".series name")
+                embed = discord.Embed(title='Usage', description='.series name')
+                await ctx.send(embed=embed)
+                return
             elif nam is not None:
                 name = str(nam)
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
@@ -3133,7 +3007,9 @@ async def trending(ctx, *, nam=None):
     channels = ["📽┃series-movie-chat"]
     if str(ctx.channel) in channels:
             if nam is None:
-                await ctx.send('.trending series or .trending movies')
+                embed = discord.Embed(title='Usage', description='.trending movies or .trending series')
+                await ctx.send(embed=embed)
+                return
             name = str(nam)
             if name == 'movies':
                 tmdb.API_KEY = '6a8577a6eccea6981d8ab8c68ab5ffcb'
@@ -3299,7 +3175,7 @@ async def cup(ctx, *, coin=0):
             await ctx.send('Game starts with atleast 200 coins')
             return
         elif q < l:
-            await ctx.send('Not enough coins game starts with atleast 200 coins')
+            await ctx.send('Not enough coins to  game starts with atleast 200 coins')
             return    
         else:
             member = ctx.message.author
@@ -3351,7 +3227,8 @@ async def toss(ctx, *, coin=0):
     channels = ["♠┃gambling"]
     if str(ctx.channel) in channels:
         if l == 0:
-            await ctx.send('Put your bet')
+            embed = discord.Embed(title='Usage', description='.toss amount')
+            await ctx.send(embed=embed)
             return
         elif q < l:
             await ctx.send('Not enough coins to play this game')
@@ -3408,7 +3285,8 @@ async def dice(ctx, *, coin=0):
     channels = ["♠┃gambling"]
     if str(ctx.channel) in channels:
         if l == 0:
-            await ctx.send('Put your bet\nMinimum = 100\nMaximum = 10000')
+            embed = discord.Embed(title='Usage', description='.dice amount\nMinimum = 100\nMaximum = 10000')
+            await ctx.send(embed=embed)
             return
         elif q < l:
             await ctx.send('Not enough coins to play this game')
@@ -4040,7 +3918,8 @@ async def bj(ctx, *, coin=0):
     channels = ["♠┃gambling"]
     if str(ctx.channel) in channels:
         if l == 0:
-            await ctx.send('Put your bet')
+            embed = discord.Embed(title='Usage', description='.bj amount')
+            await ctx.send(embed=embed)
             return
         elif q < l:
             await ctx.send('Not enough coins to play this game')
@@ -5332,7 +5211,8 @@ async def war(ctx, coin=0, *, value=None):
     channels = ["♠┃gambling"]
     if str(ctx.channel) in channels:
         if l == 0:
-            await ctx.send('Put your bet\nMinimum = 1\nMaximum = 10000')
+            embed = discord.Embed(title='Usage', description='.war amount High/Low\nMinimum = 1\nMaximum = 10000')
+            await ctx.send(embed=embed)
             return
         elif q < l:
             await ctx.send('Not enough coins to play this game')

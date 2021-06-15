@@ -22,7 +22,7 @@ import waterisyou1 as tmdb
 from jikanpy import Jikan
 from PIL import Image, ImageDraw, ImageFont
 import os
-
+import lyricsgenius
 
 
 intents = discord.Intents.all()
@@ -39,6 +39,7 @@ mute = ""
 unmute = ""
 ban = ""
 unban = "" 
+lyricsapi = "Zq6EW6o0x3zRfrPjtr3LLD7NvE-kKfU_718HV87QbFvaNVdFM_YdnlwA1tnW0I__"
 
 
 times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
@@ -49,7 +50,9 @@ send_time = random.choice(times)
 async def on_message(message, *, member: discord.Member = None):
     c = ["🤖┃machinery"]
     with open('bad-words.txt', 'r') as file:
+    
         bad_words = file.read().split(', ')
+        
     if any(bad_word in message.content for bad_word in bad_words):
         await message.channel.purge(limit=1)
         return
@@ -1998,7 +2001,6 @@ async def character(ctx, *, query=None):
 
 
 @bot.command()
-@commands.cooldown(1, 600, type=commands.BucketType.channel)
 async def seasonal(ctx, year=0, *,  s=None):
     guild = bot.get_guild(661211931558019072)
     channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
@@ -2073,17 +2075,8 @@ async def seasonal(ctx, year=0, *,  s=None):
         await message.delete()
 
 
-    
-@seasonal.error
-async def seasonal_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        c = '{:.0f}'.format(error.retry_after)            
-        await ctx.send(f'Please try again after {c} seconds')
-
-
 
 @bot.command()
-@commands.cooldown(1, 600, type=commands.BucketType.channel)
 async def upcominganimes(ctx):
     guild = bot.get_guild(661211931558019072)
     channels = ["🏮┃anime-manga-chat", "👍┃anime-manga-recommendations"]
@@ -2135,15 +2128,6 @@ async def upcominganimes(ctx):
         await message.remove_reaction(u"\u274C", user)      
         await asyncio.sleep(60)
         await message.delete()
-
-
-@seasonal.error
-async def seasonal_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        c = '{:.0f}'.format(error.retry_after)            
-        await ctx.send(f'Please try again after {c} seconds')
-
-
 
 
 @bot.command()
@@ -3140,8 +3124,14 @@ async def trending(ctx, *, nam=None):
                 await message.delete()
 
 
-
-                                         #GamesInfo
+@bot.command()
+async def lyrics(ctx, art, *, song):
+    channels = ["🤖┃machinery"]
+    if str(ctx.channel) in channels:
+        genius = lyricsgenius.Genius(lyricsapi)
+        artist = art
+        song = artist.song(f"{song}")
+        await ctx.send(f"{song.lyrics}")
 
 
 @bot.command()
@@ -5391,6 +5381,63 @@ async def war(ctx, coin=0, *, value=None):
         
                 await ctx.send(embed=embed)
                 return
+
+
+'''
+@bot.command()
+async def rr(ctx, coin=0):
+    member = ctx.message.author
+    with open('users.json', 'r') as f:
+        users = json.load(f)
+    coins = users[f'{member.id}']['coins']
+    q = int(coins)
+    l = int(coin)
+    guild = bot.get_guild(661211931558019072)
+    channels = ["♠┃gambling"]
+    if str(ctx.channel) in channels:
+        if l == 0:
+            embed = discord.Embed(title='Usage', description='.war amount High/Low\nMinimum = 1\nMaximum = 10000')
+            await ctx.send(embed=embed)
+            return
+        elif q < l:
+            await ctx.send('Not enough coins to play this game')
+            return    
+        elif l < 1:
+            await ctx.send('Minimum = 1')
+            return
+        elif l > 10000:
+            await ctx.send('Maximum = 10000')
+            return
+        else:
+            member = ctx.message.author
+            with open('users.json', 'r') as f:
+                users = json.load(f)
+            coins = users[f'{member.id}']['coins']
+            a = int(coins)
+            c = a-l
+            users[f'{member.id}']['coins'] = c
+            
+            with open('users.json', 'w') as f:
+                json.dump(users, f)
+        u = 1
+        message = ctx.send('Send join to enter the game')
+        msg = await bot.wait_for('message', check==lambda)
+        uans = (msg.content)
+        if uans == join or uans ==Join:
+            users = u + 1
+            if users == 6
+                ctx.send('Lobby is full')
+            elif users >= 1 or users <= 6:
+                enter = ctx.send('Send start to play the game')
+                msg = await bot.wait_for('start', check=lambda message: message.author == member)
+                uans = (msg.content)
+                if uans == Start or user == start:
+                    mes = ctx.send('Loading the gun')
+                    for num in range(users):
+                        for num in range(5):
+'''
+                    
+           
 
                 
 bot.loop.create_task(time_check())

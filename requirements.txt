@@ -6,3 +6,4 @@ tmdbsimple
 jikanpy
 waterisyou1
 Pillow
+lyricsgenius

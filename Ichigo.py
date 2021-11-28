@@ -31,7 +31,11 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 
 token = open("token.txt","r").read()
 
+#Libraries and basics ^^^^^^^
+
 bot.remove_command('help')
+
+#Deleting default help commamd ^^^^^^^
 
 warn= ""
 kick = ""
@@ -39,12 +43,16 @@ mute = ""
 unmute = ""
 ban = ""
 unban = "" 
+
+#Global varaibles for check command ^^^^^^^^^
+
 lyricsapi = "Zq6EW6o0x3zRfrPjtr3LLD7NvE-kKfU_718HV87QbFvaNVdFM_YdnlwA1tnW0I__"
 
 
 times = ['12:00 AM', '01:00 PM', '02:00 PM', '03:00 PM','04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 PM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM']
 send_time = random.choice(times)
 
+#For random drop global variable ^^^^^^^^
 
 @bot.event
 async def on_message(message, *, member: discord.Member = None):
@@ -59,6 +67,9 @@ async def on_message(message, *, member: discord.Member = None):
     elif any(bad_word in message.content.strip().lower() for bad_word in bad_words):
         await message.channel.purge(limit=1)
         return
+        
+#Filter bad words ^^^^^^^^
+
     if str(message.channel) in c:
         await bot.process_commands(message)
         return
@@ -77,6 +88,8 @@ async def on_message(message, *, member: discord.Member = None):
             json.dump(users, f)
 
     await bot.process_commands(message)
+
+#Exp and leveling after sending messages ^^^^^^^^^
 
     emote = [u"\u2B50"]
     def check(reaction, user):
@@ -100,7 +113,7 @@ async def on_message(message, *, member: discord.Member = None):
             emb.set_footer(text=f'{i.strftime("%d-%m-%Y %I:%M %p")}  in  {message.channel}')
             await channel.send(embed=emb)
 
-
+#Logs ^^^^^^^^
 
 async def update_data(users, user):
     if not f'{user.id}' in users:
@@ -124,6 +137,7 @@ async def add_experience(users, user, exp):
     else:
         return
 
+#Making Profile in logs ^^^^^^^^^
 
 async def level_up(users, user, message):
     with open('levels.json', 'r') as g:
@@ -167,13 +181,14 @@ async def level_up(users, user, message):
         await member.add_roles(role)
         return
 
-
+#Leveling up and auto level roles ^^^^^^^^
 
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Setting Sun by Lord Huron"))
     print(f'{bot.user} has connected to Discord!')
 
+#Bot running confirmation ^^^^^^^^
 
 async def time_check():
     await bot.wait_until_ready()
@@ -216,7 +231,7 @@ async def time_check():
         except asyncio.TimeoutError:
             await message.delete()
 
-        
+#Random credit drop ^^^^^^^
 
 @bot.event
 async def on_message_edit(before, after):
@@ -234,7 +249,8 @@ async def on_message_edit(before, after):
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
         return
-        
+
+#Storing edited message ^^^^^^
 
 @bot.event
 async def on_message_delete(message):
@@ -255,6 +271,7 @@ async def on_message_delete(message):
     else:
         return
 
+#Storing deleted message ^^^^^^
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -269,6 +286,9 @@ async def on_voice_state_update(member, before, after):
         embed.set_thumbnail(url=f'{avt}')
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
+
+#Storing log for when user connects to a vc ^^^^^^^
+        
     if before.channel and not after.channel and member.nick != 'Jockie':
         embed = discord.Embed(title='Left', description=f'{member.mention} **left** {before.channel.name}')
         if member.is_avatar_animated():
@@ -278,6 +298,9 @@ async def on_voice_state_update(member, before, after):
         embed.set_thumbnail(url=f'{avt}')
         embed.set_footer(text=f'{member.id}')
         await channel.send(embed=embed)
+
+#Storing log for when user lefts a vc ^^^^^^^
+        
     if before.channel and after.channel and member.nick != 'Jockie':
         if before.channel.id != after.channel.id:
             embed = discord.Embed(title='Switched', description=f'{member.mention} **switched from** {before.channel.name} **to** {after.channel.name}')
@@ -316,6 +339,9 @@ async def on_voice_state_update(member, before, after):
                 embed.set_thumbnail(url=f'{avt}')
                 embed.set_footer(text=f'{member.id}')
                 await channel.send(embed=embed)
+
+#Storing log for user switching vc or deafening themselves ^^^^^^^^
+                
     if after.channel is not None and member.nick != 'Jockie':
         x = {f'{member.id} : '}
         if after.channel.name == 'Join To Make New Room':
@@ -335,6 +361,8 @@ async def on_voice_state_update(member, before, after):
                     await before.channel.delete()
          
 
+#Making custom vcs ^^^^^^^^
+
                                         #STAFF COMMANDS
                                         
 @bot.command()
@@ -352,6 +380,7 @@ async def lock(ctx):
     await channel.set_permissions(role, overwrite=overwrite)
     await ctx.send('Channel has been successfully locked')
 
+#Channel Lock command ^^^^^^
     
 @bot.command()
 @commands.has_role("Inn Keeper")
@@ -368,6 +397,7 @@ async def unlock(ctx):
     await channel.set_permissions(role, overwrite=overwrite)
     await ctx.send('Channel has been successfully unlocked')
 
+#Channel unlock command ^^^^^^
 
 @bot.command()
 @commands.has_role("Inn Keeper")
@@ -393,6 +423,9 @@ async def transfer(ctx, member: discord.Member = None, *, coin=0):
             ee = discord.Embed(description=f'{coin} :coin: added in the {member.mention}\'s account')
             await ctx.send(embed=ee)
 
+
+#Transfering credit to a users account it is different then giving as in this command your credits doesn' get substracted ^^^^^^^^^
+
             
 @bot.command()
 @commands.has_role("Inn Keeper")
@@ -417,6 +450,8 @@ async def take(ctx, member: discord.Member = None, *, coin=0):
 
             ee = discord.Embed(description=f'{coin} :coin: taken from {member.mention}')            
             await ctx.send(embed=ee)
+
+#Taking credits away from users ^^^^^^
 
 
 @bot.command()
@@ -454,6 +489,8 @@ async def mods(ctx, member: discord.Member = None):
             embed.set_footer(text=f'{member.id}')
             await ctx.send(embed=embed)
 
+#Basically the check command ^^^^^^
+
 
 @bot.command(aliases=['ranking'])
 @commands.has_role("Inn Keeper")
@@ -476,7 +513,7 @@ async def leaderboard(ctx):
         await channel.send(embed=embed)
         return
 
-
+#Command that shows ranking according to lvl ^^^^^^
 
 @bot.command()
 @commands.has_role("Inn Server")
@@ -493,6 +530,8 @@ async def move(ctx, *, channel : discord.VoiceChannel = None):
         for members in id1.members:
             await members.move_to(channel)
         await ctx.send('Done')
+
+#Moving users from one vc to another ^^^^^^
 
 
 @bot.command()
@@ -513,7 +552,8 @@ async def filter(ctx, *, badword=None):
                 file.write(bad)
                 file.close()
             await ctx.send('Word filtered')
-        
+
+#Add a new word to the filter ^^^^^^^
 
 @bot.command(aliases=['ufile'])
 @commands.has_role("Inn Keeper")
@@ -531,6 +571,7 @@ async def datafile(ctx, *, name=None):
         else:
             await ctx.send('Enter badwords or users')
 
+#Datahandling mainly for bot developer ^^^^^^
 
         
 
@@ -572,6 +613,8 @@ async def addbg(ctx, users, member, bg):
         users[f'{member.id}']['bg'] = bg
         await ctx.send("New avatar added")
 
+#Adding backgroud and avatar on user profile command ^^^^^
+
 
 @bot.command(aliases=['rename'])
 @commands.has_role("Inn Server")
@@ -589,6 +632,8 @@ async def nick(ctx, member: discord.Member = None, *, name=None):
         await ctx.message.delete()
         await member.edit(nick=name)
         return
+
+#Changes user's nickname ^^^^^
 
 
 @bot.command()
@@ -618,6 +663,7 @@ async def event(ctx, user: discord.Member = None):
             await user.remove_roles(role)
             return
 
+#Event command for getting the event role ^^^^^^^
 
 @bot.command()
 @commands.has_role("Inn Server")
@@ -633,6 +679,8 @@ async def staff(ctx):
                                                                         "__**.rename**__ = \"Changes user\'s nickname\"")
         await ctx.send(content=None, embed=embed)
         return
+
+#Collection of all staff commands ^^^^^^^
 
 
 @bot.command()
@@ -652,12 +700,15 @@ async def admin(ctx):
         await ctx.send(content=None, embed=embed)
         return
 
+#Collection of all admin commands 
+
 
 @bot.command(aliases=["purge"])
 @commands.has_role("Inn Keeper")
 async def clear(ctx, amount=100):
     await ctx.channel.purge(limit=amount)
 
+#Deletes n amount of recent messages in a channel ^^^^^
 
 @bot.command(aliases=["w"])
 @commands.has_role('Inn Server')
@@ -716,6 +767,7 @@ async def warn(ctx, member: discord.Member = None, *, reason=None):
                 print(e)
             return
 
+#Warn command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
 
 @bot.command(aliases=["k"])
 @commands.has_role('Inn Server')
@@ -774,6 +826,8 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
                 print(e)
                 return
 
+#Kick command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
+
 
 @bot.command(aliases=["b"])
 @commands.has_role('Inn Keeper')
@@ -825,6 +879,8 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
             print(e)
             return
 
+#Ban command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
+
 
 @bot.command(aliases=["sban"])
 @commands.has_role('Inn Keeper')
@@ -875,6 +931,8 @@ async def serverban(ctx, id: int = None, *, reason=None):
             print(e)
             return
 
+#IP ban command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
+
             
 @bot.command(aliases=["ub"])
 @commands.has_role('Inn Keeper')
@@ -913,6 +971,9 @@ async def unban(ctx, id: int = None, *, reason=None):
         except Exception as e:
             print(e)
             return
+
+#Unban command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
+
 
 
 @bot.command(aliases=["m"])
@@ -974,6 +1035,9 @@ async def mute(ctx, member: discord.Member = None, *, reason=None):
             print(e)
             return
 
+#Mute  command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
+
+
 
 @bot.command(pass_context = True, aliases=["um"])
 @commands.has_role('Inn Server')
@@ -1016,6 +1080,8 @@ async def unmute(ctx, member: discord.Member = None, *, reason=None):
             except Exception as e:
                 print(e)
                 return
+
+#Unmute command that stores data in users.json and creates log in Moderation channel ^^^^^^^^
 
 
 @bot.event
@@ -1063,6 +1129,8 @@ async def on_member_join(member):
     embed.set_footer(text=f'{member.id}')
     await channel.send(embed=embed)
 
+#Welcome banner also makes log of Joined™^^^^^
+
 
 @bot.event
 async def on_member_remove(member):
@@ -1077,6 +1145,7 @@ async def on_member_remove(member):
     embed.set_footer(text=f'{member.id}')
     await channel.send(embed=embed)
 
+#Makes log of user Left ^^^^^^
 
                                         #MEMBER COMMANDS
 
@@ -1103,6 +1172,8 @@ async def suggest(ctx):
         except asyncio.TimeoutError:
             await ctx.send('Timeout try again')
 
+#Suggest commands creates a suggestion in a specfic channel ^^^^^
+
 
 @bot.command()
 async def help(ctx):
@@ -1116,6 +1187,8 @@ async def help(ctx):
         embed.add_field(name='Fun/Recreation Commands', value='`.cup`  `.toss`  `.dice`  `.bj`  `.war`')
         await ctx.send(content=None, embed=embed)
         return
+
+#Collection of all commands a member can use ^^^^^^
 
 @bot.command(aliases=["uinfo"])
 async def userinfo(ctx, *, user: discord.Member = None):
@@ -1137,6 +1210,8 @@ async def userinfo(ctx, *, user: discord.Member = None):
         return await ctx.send(embed=embed)
 
 
+#Userinfo command ^^^^^
+
 @bot.command()
 async def pfp(ctx, *, user: discord.Member = None):
     channels = ["🤖┃machinery"]
@@ -1154,6 +1229,7 @@ async def pfp(ctx, *, user: discord.Member = None):
             embed.set_image(url=f"{user.avatar_url_as(size=1024, format='png')}")
         return await ctx.send(embed=embed)
 
+#Shows users avatar on the server ^^^^^^
 
 @bot.command()
 async def profile(ctx, member: discord.Member = None):
@@ -1256,6 +1332,10 @@ async def profile(ctx, member: discord.Member = None):
                 await ctx.send(embed=embed)
                 return
 
+
+#Self made profile ^^^^^
+
+
 @bot.command()
 async def editinfo(ctx, *, info = None):
     channels = ["🤖┃machinery"]
@@ -1285,6 +1365,7 @@ async def userdata(users, user, info):
         users[f'{user.id}']['info'] = info
         await channel.send('Edited')
 
+
 async def edit(users, user, info):
     guild = bot.get_guild(661211931558019072)
     channel = guild.get_channel(686918214327861266)
@@ -1294,11 +1375,14 @@ async def edit(users, user, info):
     else:
         return
                                  
+#Editing info section in profile command and storing it in user.json ^^^^^
 
 @bot.command()
 async def ping(ctx):
     await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
     return
+
+#Speed of the bot ^^^^^
 
 
 @bot.command(aliases=["sinfo"])
@@ -1315,6 +1399,7 @@ async def serverinfo(ctx):
     await ctx.send(embed=embed)
     return
 
+#Server info ^^^^^^
 
 @bot.command(aliases=['currency'])
 async def coins(ctx, member:discord.Member = None):
@@ -1331,6 +1416,8 @@ async def coins(ctx, member:discord.Member = None):
         ee = discord.Embed(description=f"{member.mention} has {coins} :coin:")
         await ctx.send(embed=ee)
 
+
+#Total credits avaible to user at the moment ^^^^
     
 @bot.command(aliases=['daily'])
 @commands.cooldown(1, 86400, type=commands.BucketType.user)
@@ -1350,6 +1437,8 @@ async def taskdone(ctx):
 async def addcoins(ctx, member, users):
             users[f'{member.id}']['coins'] += 1000
             await ctx.send(f"{member.mention} you have earned 1000 :coin:")
+
+#Adds daily amount of the coun no streak also adds the amount in user.json ^^^^^
 
 
 @taskdone.error
@@ -1377,6 +1466,7 @@ async def taskdone_error(ctx, error):
     else:
         raise error
 
+#Daily command cooldown ^^^^
 
 @bot.command()
 async def buyrole(ctx, *, role = None):
@@ -1443,7 +1533,7 @@ async def buyrole(ctx, *, role = None):
             await ctx.send(embed=embed)
             return
 
-
+#Buying role ^^^^^^
             
 @bot.command()
 async def roles(ctx):
@@ -1453,7 +1543,7 @@ async def roles(ctx):
     embed.add_field(name="365000 :coin: Best Buyable Roles\n\n\n", value="**Pirate**\n")
     await ctx.send(embed=embed)
 
-
+#All buyable roles ^^^^^^
 
 @bot.command()
 async def give(ctx, member: discord.Member = None, *, coin=0):
@@ -1499,6 +1589,9 @@ async def give(ctx, member: discord.Member = None, *, coin=0):
             await ctx.send(embed=embed)
 
 
+#Gives a user credits while substracting others ^^^^^
+
+
 @bot.command()
 @commands.cooldown(1, 30, type=commands.BucketType.user)
 async def kiss(ctx, member: discord.Member = None):
@@ -1520,6 +1613,7 @@ async def kiss_error(ctx, error):
         c = '{:.0f}'.format(error.retry_after)        
         await ctx.send(f'Please try again after {c} seconds')
         
+#.kiss command that sends gif of kissing with cooldown ^^^^^^
 
 @bot.command()
 @commands.cooldown(1, 30, type=commands.BucketType.user)
@@ -1542,6 +1636,8 @@ async def fist_error(ctx, error):
         c = '{:.0f}'.format(error.retry_after)        
         await ctx.send(f'Please try again after {c} seconds')
 
+
+#.Fist command that sends gif of kissing with cooldown ^^^^^^
         
 @bot.command()
 @commands.cooldown(1, 30, type=commands.BucketType.user)
@@ -1564,6 +1660,7 @@ async def hug_error(ctx, error):
         c = '{:.0f}'.format(error.retry_after)        
         await ctx.send(f'Please try again after {c} seconds')
 
+#.hug command that sends gif of kissing with cooldown ^^^^^^
 
 @bot.command()
 @commands.cooldown(1, 30, type=commands.BucketType.user)
@@ -1586,6 +1683,7 @@ async def slap_error(ctx, error):
         c = '{:.0f}'.format(error.retry_after)
         await ctx.send(f'Please try again after {c} seconds')
         
+#.slap command that sends gif of kissing with cooldown ^^^^^^
 
                                           #ANIME & MANGA
 
@@ -1641,7 +1739,7 @@ async def anime_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            
         await ctx.send(f'Please try again after {c} seconds')
-        
+
         
 @bot.command()
 @commands.cooldown(1, 300, type=commands.BucketType.channel)
@@ -1718,7 +1816,8 @@ async def animeost_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         c = '{:.0f}'.format(error.retry_after)            
         await ctx.send(f'Please try again after {c} seconds')            
-            
+
+#All three use myanimelist kinda slow and request limited ^^^^^^
 
 
 @bot.command()
@@ -1810,7 +1909,7 @@ async def anime(ctx, *, query=None):
             return
         
         
-
+#Uses anilist faster and better ^^^^^^
 
 
 @bot.command()
@@ -1852,6 +1951,8 @@ async def manga_error(ctx, error):
         c = '{:.0f}'.format(error.retry_after)            
         await ctx.send(f'Please try again after {c} seconds')
             
+#Uses myanimelist for manga again slow and request limited ^^^^^^
+
 
 @bot.command()
 async def manga(ctx, *, query=None):
@@ -1923,7 +2024,7 @@ async def manga(ctx, *, query=None):
         elif str(ctx.channel) == "👍┃anime-manga-recommendations":
             return
 
-
+#Uses anilist for manga faster and better ^^^^^
 
 
 @bot.command()
@@ -2000,6 +2101,8 @@ async def character(ctx, *, query=None):
         await message.delete()
 
 
+#To get an anime character ^^^^^^
+
 @bot.command()
 async def seasonal(ctx, year=0, *,  s=None):
     guild = bot.get_guild(661211931558019072)
@@ -2074,7 +2177,7 @@ async def seasonal(ctx, year=0, *,  s=None):
         await asyncio.sleep(60)
         await message.delete()
 
-
+#Shows all the animes releasing in the current season ^^^^^^
 
 @bot.command()
 async def upcominganimes(ctx):
@@ -2129,6 +2232,7 @@ async def upcominganimes(ctx):
         await asyncio.sleep(60)
         await message.delete()
 
+#Shows animes for next coming seasons ^^^^^
 
 @bot.command()
 async def mal(ctx, *, u=None):
@@ -2190,7 +2294,7 @@ async def mal(ctx, *, u=None):
 
 
 
-
+#myanimelist profile ^^^^^
 
 
                                          #Movies & TV Series
@@ -2861,6 +2965,7 @@ async def tv(ctx, *, name=None):
            await ctx.send('Page Not Found')
            await msg.delete()
 
+#Uses imdb slower and unperdictable ^^^^^
 
 
 
@@ -2917,7 +3022,7 @@ async def movie(ctx, *, nam=None):
                 await asyncio.sleep(60)
                 await message.delete()
 
-
+#Uses tmdb faster abd better 
 
                     
 
@@ -2967,6 +3072,7 @@ async def movieimage(ctx, *, nam=None):
                 await asyncio.sleep(60)
                 await message.delete()
 
+#Gets the main image of a movie ^^^^^
 
 @bot.command()
 async def series(ctx, *, nam=None):
@@ -3019,7 +3125,7 @@ async def series(ctx, *, nam=None):
                 await asyncio.sleep(60)
                 await message.delete()
 
-
+#Uses tmdb for series faster and better ^^^^^^
 
 @bot.command()
 async def trending(ctx, *, nam=None):
@@ -3123,6 +3229,8 @@ async def trending(ctx, *, nam=None):
                 await asyncio.sleep(60)
                 await message.delete()
 
+#Shows trending movies on tmdb ^^^^^^
+
 
 @bot.command()
 async def lyrics(ctx, art, *, song):
@@ -3132,6 +3240,8 @@ async def lyrics(ctx, art, *, song):
         artist = art
         song = artist.song(f"{song}")
         await ctx.send(f"{song.lyrics}")
+
+#Shows Lyrics for songs ^^^^^
 
 
 @bot.command()
@@ -3177,6 +3287,8 @@ async def freegames(ctx):
         await message.remove_reaction(u"\u274C", user)      
         await asyncio.sleep(60)
         await message.delete()
+
+#Don't know if it still works ^^^^^^
 
 
                                           #Games & Fun
@@ -3237,7 +3349,9 @@ async def cup(ctx, *, coin=0):
                 await ctx.send(embed=e)
             else:
                 await ctx.send(f'Wrong the right answer was {p} <:cupup:767373971137101886> :coin:')
-                
+
+
+#Simple find the cup which has the item ^^^^^^
 
 
 @bot.command()
@@ -3296,7 +3410,8 @@ async def toss(ctx, *, coin=0):
                 elif p == '2':
                     p = 'Tails'
                 await ctx.send(f'Sorry it was :coin: {p}')
-                                
+
+#Simple coin toss ^^^^^^
                 
 @bot.command()
 async def dice(ctx, *, coin=0):
@@ -3929,7 +4044,7 @@ async def dice(ctx, *, coin=0):
                 ee.add_field(name='Lost', value=f'You got {p} {pa} {pe} that means you lost {j} :coin:')
                 await ctx.send(embed=ee)
 
-
+#Totally new game on discord inspired by suikodden 2 ^^^^^^
                 
 @bot.command()
 async def bj(ctx, *, coin=0):
@@ -5223,6 +5338,7 @@ async def bj(ctx, *, coin=0):
                         await ctx.send(embed=embed)        
                         return
 
+#Black jack ^^^^^^^
 
 @bot.command()
 async def war(ctx, coin=0, *, value=None):
@@ -5382,6 +5498,7 @@ async def war(ctx, coin=0, *, value=None):
                 await ctx.send(embed=embed)
                 return
 
+#War is about choosing if the size of your card correctly ^^^^^^
 
 '''
 @bot.command()
@@ -5436,8 +5553,8 @@ async def rr(ctx, coin=0):
                     for num in range(users):
                         for num in range(5):
 '''
-                    
-           
+
+#Trying to make russian rossulate 
 
                 
 bot.loop.create_task(time_check())
